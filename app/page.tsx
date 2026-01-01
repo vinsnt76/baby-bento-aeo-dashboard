@@ -90,7 +90,7 @@ export default function AEOCommandCenter() {
         {/* SECTION 1: AEO SCORECARDS */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {AEO_SCORECARDS.map((card, i) => (
-            <div key={i} className={`bg-white p-6 rounded-[2rem] border-2 shadow-sm transition-transform hover:scale-[1.02] ${card.color}`}>
+            <div key={i} className={`bg-white p-6 rounded-4xl border-2 shadow-sm transition-transform hover:scale-[1.02] ${card.color}`}>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">{card.label}</p>
               <h3 className="text-4xl font-black text-gray-900 leading-none mb-2">{card.val}</h3>
               <p className="text-xs font-bold opacity-80 mb-4">{card.sub}</p>
