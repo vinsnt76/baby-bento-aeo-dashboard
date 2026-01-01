@@ -185,6 +185,55 @@ export default function AEOReport() {
 
       </section>
 
+      {/* Markdown Comparison: SEO vs. AEO */}
+      <section className="max-w-7xl mx-auto mt-16 mb-12">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">The Paradigm Shift</h2>
+          <p className="text-gray-500 italic">Moving from "Ranking" to "Retrieval"</p>
+        </div>
+        
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 bg-gray-900 text-white font-bold uppercase tracking-widest text-xs">
+            <div className="p-4 border-b md:border-b-0 md:border-r border-gray-700">Dimension</div>
+            <div className="p-4 border-b md:border-b-0 md:border-r border-gray-700 bg-gray-800">Traditional SEO</div>
+            <div className="p-4 text-blue-400">Modern AEO Paradigm</div>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {/* Row 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 hover:bg-gray-50 transition">
+              <div className="p-6 bg-gray-50/50 font-bold text-gray-700 border-r border-gray-100">Primary "Reader"</div>
+              <div className="p-6 text-gray-500 italic border-r border-gray-100">Web Crawlers & Humans</div>
+              <div className="p-6 text-blue-900 font-semibold">LLM Agents & Retrieval Models</div>
+            </div>
+            {/* Row 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 hover:bg-gray-50 transition">
+              <div className="p-6 bg-gray-50/50 font-bold text-gray-700 border-r border-gray-100">Unit of Optimization</div>
+              <div className="p-6 text-gray-500 italic border-r border-gray-100">Monolithic Pages (URLs)</div>
+              <div className="p-6 text-blue-900 font-semibold">Atomic Chunks & Knowledge Nodes</div>
+            </div>
+            {/* Row 3 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 hover:bg-gray-50 transition">
+              <div className="p-6 bg-gray-50/50 font-bold text-gray-700 border-r border-gray-100">Primary Metric</div>
+              <div className="p-6 text-gray-500 italic border-r border-gray-100">Click-Through Rate (CTR)</div>
+              <div className="p-6 text-blue-900 font-semibold">Share of Model (SoM) & Citations</div>
+            </div>
+            {/* Row 4 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 hover:bg-gray-50 transition">
+              <div className="p-6 bg-gray-50/50 font-bold text-gray-700 border-r border-gray-100">Technical Pivot</div>
+              <div className="p-6 text-gray-500 italic border-r border-gray-100">Sitemaps & Title Tags</div>
+              <div className="p-6 text-blue-900 font-semibold">Schema Markup & Monosemanticity</div>
+            </div>
+             {/* Row 5 */}
+             <div className="grid grid-cols-1 md:grid-cols-3 hover:bg-gray-50 transition">
+              <div className="p-6 bg-gray-50/50 font-bold text-gray-700 border-r border-gray-100">Success Goal</div>
+              <div className="p-6 text-gray-500 italic border-r border-gray-100">Winning the Click</div>
+              <div className="p-6 text-green-600 font-bold italic underline decoration-green-200">Winning Selection & Attribution</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* AEO Specialist Finding Box */}
       <footer className="max-w-7xl mx-auto mt-10 p-6 bg-blue-50 border border-blue-100 rounded-2xl">
         <div className="flex gap-3">
