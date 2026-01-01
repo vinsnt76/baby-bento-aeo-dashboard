@@ -105,6 +105,86 @@ export default function AEOReport() {
         </div>
       </section>
 
+      {/* Query Intent Pivot Section */}
+      <section className="max-w-7xl mx-auto mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Top Performing Queries */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <span>🎯</span> High-Intent Query Pivot
+            </h2>
+          </div>
+          <div className="p-0">
+            <ul className="divide-y divide-gray-100">
+              <li className="p-4 flex justify-between items-center hover:bg-blue-50/30 transition">
+                <div>
+                  <p className="text-sm font-bold text-gray-900">best insulated lunch bag australia</p>
+                  <p className="text-xs text-gray-500">AEO Conversion Winner</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-blue-600">10.7% CTR</p>
+                  <p className="text-xs text-gray-400">Pos: 2.44</p>
+                </div>
+              </li>
+              <li className="p-4 flex justify-between items-center hover:bg-blue-50/30 transition">
+                <div>
+                  <p className="text-sm font-bold text-gray-900">training chopsticks for adults</p>
+                  <p className="text-xs text-gray-500">Niche Authority</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-gray-900">1.8% CTR</p>
+                  <p className="text-xs text-gray-400">Impr: 274</p>
+                </div>
+              </li>
+              <li className="p-4 flex justify-between items-center hover:bg-blue-50/30 transition">
+                <div>
+                  <p className="text-sm font-bold text-gray-900">best insulated lunch bag</p>
+                  <p className="text-xs text-gray-500">Broad Intent Lift</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-green-600">↑ 30.6 to 6.7</p>
+                  <p className="text-xs text-gray-400">Massive Pos. Jump</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Device Buoyancy (Mobile vs Desktop) */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>📱</span> Device Buoyancy
+          </h2>
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="font-medium text-gray-600">Mobile (Primary AEO Source)</span>
+                <span className="font-bold text-gray-900">31,404 Impr.</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3">
+                <div className="bg-blue-500 h-3 rounded-full" style={{ width: '65%' }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="font-medium text-gray-600">Desktop</span>
+                <span className="font-bold text-gray-900">16,319 Impr.</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3">
+                <div className="bg-gray-400 h-3 rounded-full" style={{ width: '34%' }}></div>
+              </div>
+            </div>
+            <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+              <p className="text-xs text-gray-500 leading-relaxed">
+                <strong>Insight:</strong> Mobile traffic is driving 2x the impressions of Desktop. Ensure FAQ accordions and How-To steps are optimized for vertical scrolling to maintain the 1.32% Mobile CTR.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
       {/* AEO Specialist Finding Box */}
       <footer className="max-w-7xl mx-auto mt-10 p-6 bg-blue-50 border border-blue-100 rounded-2xl">
         <div className="flex gap-3">
