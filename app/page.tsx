@@ -9,14 +9,33 @@ import React from 'react';
 const BASELINE_DATE = "Nov 2025";
 const CURRENT_DATE = "Dec 2025";
 
-const AEO_SCORECARDS = [
+interface Scorecard {
+  label: string;
+  val: string;
+  sub: string;
+  color: string;
+  desc: string;
+}
+
+const AEO_SCORECARDS: Scorecard[] = [
   { label: "Selection Efficiency", val: "10.7%", sub: "Peak AEO CTR", color: "border-blue-100 text-blue-600", desc: "How often AI choose us as the primary answer." },
   { label: "Model Authority", val: "2.85", sub: "Avg. Merchant Pos", color: "border-purple-100 text-purple-600", desc: "Our trust score in Google's Shopping Brain." },
   { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", color: "border-green-100 text-green-600", desc: "Total times our 'Atomic Chunks' were served." },
   { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", color: "border-orange-100 text-orange-600", desc: "Active pages with deep semantic schema." }
 ];
 
-const VELOCITY_DATA = [
+interface VelocityItem {
+  url: string;
+  intent: "Commercial" | "Informational" | "Transactional";
+  baseline: number;
+  current: number;
+  lift: string;
+  status: string;
+  rich: string;
+  style: string;
+}
+
+const VELOCITY_DATA: VelocityItem[] = [
   { 
     url: "/blogs/product-review/australia-insulated-lunch-bags-top-brands-2026", 
     intent: "Commercial",
@@ -185,6 +204,47 @@ export default function AEOCommandCenter() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* SEMANTIC RETRIEVAL STRATEGY */}
+        <section className="bg-gray-900 rounded-3xl p-8 text-white shadow-2xl mt-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h4 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                AEO Strategic Health
+              </h4>
+              <div className="space-y-5">
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1 uppercase">
+                    <span className="text-green-400">Buoyant (Retrieved)</span>
+                    <span>25%</span>
+                  </div>
+                  <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-green-400 h-full w-1/4"></div></div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1 uppercase">
+                    <span className="text-blue-400">Establishing</span>
+                    <span>25%</span>
+                  </div>
+                  <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-blue-400 h-full w-1/4"></div></div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1 uppercase">
+                    <span className="text-red-400">Missing (Debt)</span>
+                    <span>50%</span>
+                  </div>
+                  <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-red-400 h-full w-1/2"></div></div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 backdrop-blur-sm">
+              <h5 className="text-xs font-bold text-blue-300 uppercase mb-3 tracking-widest">Analyst Recommendation</h5>
+              <p className="text-lg font-medium text-gray-200 leading-snug">
+                "Winning <span className="text-white border-b-2 border-blue-500">Selection</span> with 10%+ CTR. 50% of nodes are currently 'Blind' to AI crawlers. Priority: Inject FAQ/Product schema into the <strong>Sushi Maker</strong> and <strong>Accessories</strong> nodes."
+              </p>
+            </div>
           </div>
         </section>
 
