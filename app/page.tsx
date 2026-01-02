@@ -7,7 +7,7 @@ const VELOCITY_DATA = [
   { url: "/blogs/product-review/australia-insulated-lunch-bags-top-brands-2026", intent: "Commercial", baseline: 647, current: 2130, lift: "+229%", status: "Buoyant", rich: "Product Snippets", style: "text-green-600 bg-green-50 border-green-100" },
   { url: "/blogs/product-review/lunchbox-solutions-for-busy-parents", intent: "Informational", baseline: 0, current: 433, lift: "NEW", status: "Establishing", rich: "How-To / FAQ", style: "text-blue-600 bg-blue-50 border-blue-100" },
   { url: "/products/lilac-montiico-750ml-sport-drink-bottle", intent: "Transactional", baseline: 0, current: 18, lift: "First Hit", status: "Establishing", rich: "Merchant Listing", style: "text-blue-600 bg-blue-50 border-blue-100" },
-  { url: "/blogs/recipes/easy-sushi-maker-kids-bento", intent: "Informational", baseline: 0, current: 21, lift: "Stalled", status: "Missing", rich: "None", style: "text-red-600 bg-red-50 border-red-100" }
+  { url: "/blogs/recipes/easy-sushi-maker-kids-bento", intent: "Informational", baseline: 0, current: 21, lift: "Stalled", status: "Missing", rich: "None", style: "text-[#FF6F61] bg-[#FF6F61]/10 border-[#FF6F61]/20" }
 ];
 
 export default function BabyBentoDashboard() {
@@ -20,21 +20,22 @@ export default function BabyBentoDashboard() {
         {/* 2. REPORT HEADER: Soft radial gradient with Logo */}
         <header className="mb-12 overflow-hidden rounded-2xl shadow-2xl bg-[radial-gradient(at_top_left,#FFF5F2_0%,#FFFFFF_40%,#F0FDF4_100%)] text-[#2D334A] p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            {/* LOGO INTEGRATION: Using existing SVG asset */}
-            <div className="relative w-14 h-14 shrink-0">
+            {/* FIXED: Defined height/width parent for Next.js Image */}
+            <div className="relative w-16 h-16 shrink-0">
                <Image 
-                src="/assets/logo.svg" 
+                src="/logo.png" 
                 alt="Baby Bento Logo" 
-                fill 
+                width={64}
+                height={64}
                 className="object-contain"
                 priority
                />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight uppercase italic">
+              <h1 className="text-3xl font-black tracking-tight uppercase italic leading-none">
                 Baby Bento Dashboard – Dec 2025
               </h1>
-              <p className="text-[#FF8A75] text-[10px] font-black uppercase tracking-[0.4em] mt-1">AEO Intelligence Command</p>
+              <p className="text-[#FF8A75] text-[10px] font-black uppercase tracking-[0.4em] mt-2">AEO Intelligence Command</p>
             </div>
           </div>
           <div className="px-5 py-2 bg-[#2D334A] text-white rounded-xl text-xs font-black shadow-lg uppercase tracking-widest">
@@ -63,10 +64,9 @@ export default function BabyBentoDashboard() {
           ))}
         </section>
 
-        {/* 5. INTENT METRIC HIGHLIGHTS: Warm Cream Backgrounds */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-0.5 w-8 bg-[#FCD34D]"></div>
-          <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/40">Query Intent Fan-out</h2>
+        {/* 5. INTENT METRIC HIGHLIGHTS: Cyber-Moody Data Core */}
+        <div className="inline-block rounded-md bg-[#FCD34D] text-[#2D334A] px-6 py-2 font-black uppercase tracking-widest text-[10px] mb-6 shadow-lg">
+           Query Intent Fan-out
         </div>
         
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
@@ -75,13 +75,13 @@ export default function BabyBentoDashboard() {
             { title: "Informational", weight: "12%", play: "Inject VideoObject schema." },
             { title: "Transactional", weight: "04%", play: "Audit GTINs in Merchant Center." }
           ].map((intent, i) => (
-            <div key={i} className="bg-[#FEF3C7] text-[#2D334A] p-8 rounded-4xl shadow-2xl relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4">
-                <p className="font-black text-xs uppercase tracking-tighter text-[#2D334A]/60">{intent.title} Intent</p>
-                <span className="text-3xl font-black italic text-[#2D334A]/10">{intent.weight}</span>
+            <div key={i} className="bg-[#2D334A]/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5 shadow-inner">
+              <p className="font-black text-xs uppercase tracking-tighter text-[#FCD34D]">{intent.title} Intent</p>
+              <span className="text-4xl font-black italic text-[#FEF3C7]">{intent.weight}</span>
+              <div className="mt-6 p-4 bg-white/5 rounded-xl">
+                <p className="text-[10px] font-black uppercase text-[#FAA1A1]">Strategic Play</p>
+                <p className="text-xs font-bold text-white italic">{intent.play}</p>
               </div>
-              <h4 className="text-xl font-black mb-6">Strategic Play:</h4>
-              <p className="text-sm font-bold italic leading-relaxed border-l-2 border-[#2D334A]/20 pl-4">{intent.play}</p>
             </div>
           ))}
         </section>
