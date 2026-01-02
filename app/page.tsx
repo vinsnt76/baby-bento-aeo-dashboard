@@ -3,6 +3,10 @@
 import React from 'react';
 import Image from 'next/image';
 
+export const metadata = {
+  title: "Baby Bento Dashboard – December 25 Baseline Performance",
+};
+
 const VELOCITY_DATA = [
   { url: "/blogs/product-review/australia-insulated-lunch-bags-top-brands-2026", intent: "Commercial", baseline: 647, current: 2130, lift: "+229%", status: "Buoyant", rich: "Product Snippets", style: "bg-emerald-100 text-emerald-800 border border-emerald-200" },
   { url: "/blogs/product-review/lunchbox-solutions-for-busy-parents", intent: "Informational", baseline: 0, current: 433, lift: "NEW", status: "Establishing", rich: "How-To / FAQ", style: "bg-blue-100 text-blue-800 border border-blue-200" },
