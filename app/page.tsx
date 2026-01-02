@@ -2,40 +2,15 @@
 
 import React from 'react';
 
-/**
- * 1. DATA LAYER
- * Swap these values as you update your exports from Search Console/Shopify.
- */
-const BASELINE_DATE = "Nov 2025";
-const CURRENT_DATE = "Dec 2025";
+// BRAND COLOR TOKENS (CSS Variables for easy updating)
+const BB_COLORS = {
+  primary: '#FF8A75',   // Warm Peach
+  secondary: '#79D2B5', // Mint Green
+  accent: '#2D334A',    // Deep Navy
+  light: '#FFF5F2',     // Soft Cream
+};
 
-interface Scorecard {
-  label: string;
-  val: string;
-  sub: string;
-  color: string;
-  desc: string;
-}
-
-const AEO_SCORECARDS: Scorecard[] = [
-  { label: "Selection Efficiency", val: "10.7%", sub: "Peak AEO CTR", color: "border-blue-100 text-blue-600", desc: "How often AI choose us as the primary answer." },
-  { label: "Model Authority", val: "2.85", sub: "Avg. Merchant Pos", color: "border-purple-100 text-purple-600", desc: "Our trust score in Google's Shopping Brain." },
-  { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", color: "border-green-100 text-green-600", desc: "Total times our 'Atomic Chunks' were served." },
-  { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", color: "border-orange-100 text-orange-600", desc: "Active pages with deep semantic schema." }
-];
-
-interface VelocityItem {
-  url: string;
-  intent: "Commercial" | "Informational" | "Transactional";
-  baseline: number;
-  current: number;
-  lift: string;
-  status: string;
-  rich: string;
-  style: string;
-}
-
-const VELOCITY_DATA: VelocityItem[] = [
+const VELOCITY_DATA = [
   { 
     url: "/blogs/product-review/australia-insulated-lunch-bags-top-brands-2026", 
     intent: "Commercial",
@@ -44,7 +19,7 @@ const VELOCITY_DATA: VelocityItem[] = [
     lift: "+229%", 
     status: "Buoyant", 
     rich: "Product Snippets",
-    style: "text-green-600 bg-green-50"
+    style: "text-[#79D2B5] bg-[#79D2B5]/10 border-[#79D2B5]/20"
   },
   { 
     url: "/blogs/product-review/lunchbox-solutions-for-busy-parents", 
@@ -54,17 +29,17 @@ const VELOCITY_DATA: VelocityItem[] = [
     lift: "NEW", 
     status: "Establishing", 
     rich: "How-To / FAQ",
-    style: "text-blue-600 bg-blue-50"
+    style: "text-[#FF8A75] bg-[#FF8A75]/10 border-[#FF8A75]/20"
   },
   { 
     url: "/products/lilac-montiico-750ml-sport-drink-bottle", 
     intent: "Transactional",
     baseline: 0, 
     current: 18,
-    lift: "Merchant Lift", 
+    lift: "First Hit", 
     status: "Establishing",
     rich: "Merchant Listing",
-    style: "text-blue-600 bg-blue-50"
+    style: "text-[#FF8A75] bg-[#FF8A75]/10 border-[#FF8A75]/20"
   },
   { 
     url: "/blogs/recipes/easy-sushi-maker-kids-bento", 
@@ -74,129 +49,113 @@ const VELOCITY_DATA: VelocityItem[] = [
     lift: "Stalled", 
     status: "Missing", 
     rich: "None",
-    style: "text-red-600 bg-red-50"
+    style: "text-red-600 bg-red-50 border-red-100"
   }
 ];
 
-/**
- * 2. MAIN COMPONENT
- */
-export default function AEOCommandCenter() {
+export default function BabyBentoDashboard() {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
+    // GRADIENT BACKGROUND: Subtle modern mesh gradient
+    <div className="min-h-screen bg-[radial-gradient(at_top_left,_#FFF5F2_0%,_#FFFFFF_40%,_#F0FDF4_100%)] font-sans text-[#2D334A] pb-20">
+      
       <main className="max-w-7xl mx-auto p-4 md:p-10">
         
-        {/* HEADER */}
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Live AEO Intelligence</span>
+        {/* HEADER WITH LOGO INTEGRATION */}
+        <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            {/* LOGO PLACEHOLDER: Replace src with your actual logo file */}
+            <div className="w-12 h-12 bg-[#FF8A75] rounded-xl flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
+               <span className="text-white font-black text-xl italic">BB</span>
             </div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase italic text-gray-900">
-              Baby Bento <span className="text-blue-600">Command</span>
-            </h1>
-            <p className="text-gray-500 font-medium mt-1">Velocity Tracker: {BASELINE_DATE} Baseline vs. {CURRENT_DATE} Growth</p>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-[#2D334A]">
+                Baby Bento Dashboard – Dec 2025
+              </h1>
+              <p className="text-[#FF8A75] text-xs font-bold uppercase tracking-[0.2em]">AEO Performance Command</p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <div className="px-6 py-3 bg-white border-2 border-gray-100 rounded-2xl shadow-sm">
-              <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Global Trust</p>
-              <p className="text-sm font-bold">Merchant Position: <span className="text-purple-600 underline">2.85</span></p>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 bg-white/80 backdrop-blur-md border border-[#FF8A75]/20 rounded-xl text-xs font-bold shadow-sm">
+              Merchant Pos: <span className="text-[#79D2B5] font-black">2.85</span>
             </div>
           </div>
         </header>
 
-        {/* SECTION 1: AEO SCORECARDS */}
+        {/* SCORECARDS: Using Brand Accents */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {AEO_SCORECARDS.map((card, i) => (
-            <div key={i} className={`bg-white p-6 rounded-4xl border-2 shadow-sm transition-transform hover:scale-[1.02] ${card.color}`}>
+          {[
+            { label: "Selection Efficiency", val: "10.7%", sub: "Peak AEO CTR", color: "border-[#FF8A75]/30 text-[#FF8A75]" },
+            { label: "Model Authority", val: "2.85", sub: "Avg. Merchant Pos", color: "border-[#79D2B5]/30 text-[#79D2B5]" },
+            { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", color: "border-[#2D334A]/10 text-[#2D334A]" },
+            { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", color: "border-[#FF8A75]/30 text-[#FF8A75]" }
+          ].map((card, i) => (
+            <div key={i} className={`bg-white/60 backdrop-blur-md p-6 rounded-[2rem] border-2 shadow-sm transition-all hover:shadow-xl hover:shadow-[#FF8A75]/5 ${card.color}`}>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">{card.label}</p>
-              <h3 className="text-4xl font-black text-gray-900 leading-none mb-2">{card.val}</h3>
-              <p className="text-xs font-bold opacity-80 mb-4">{card.sub}</p>
-              <p className="text-[11px] leading-relaxed text-gray-500 border-t border-current pt-3 opacity-60 italic">{card.desc}</p>
+              <h3 className="text-4xl font-black">{card.val}</h3>
+              <p className="text-[11px] mt-2 font-medium italic opacity-60">{card.sub}</p>
             </div>
           ))}
         </section>
 
-        {/* SECTION 2: INTENT FAN-OUT ANALYSIS */}
-        <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6">Query Intent Fan-out & Insights</h2>
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          
-          <div className="bg-white p-8 rounded-[2.5rem] border-2 border-blue-50 border-b-blue-200 shadow-sm">
-            <div className="flex justify-between items-start mb-6">
-              <p className="text-blue-600 font-black text-xs uppercase tracking-tighter">Commercial Intent</p>
-              <span className="text-2xl font-black italic opacity-20">84%</span>
+        {/* INTENT FAN-OUT: Brand Colored Insights */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+          {[
+            { title: "Commercial", weight: "84%", color: "#79D2B5", desc: "Best-of comparison dominance.", play: "Add 'Check Price' to tables." },
+            { title: "Informational", weight: "12%", color: "#FF8A75", desc: "How-to guides & recipes.", play: "Inject VideoObject schema." },
+            { title: "Transactional", weight: "04%", color: "#2D334A", desc: "Direct product SKU searches.", play: "Audit GTINs in Merchant Center." }
+          ].map((intent, i) => (
+            <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+              <div className="flex justify-between items-start mb-4">
+                <p className={`font-black text-xs uppercase tracking-tighter`} style={{ color: intent.color }}>{intent.title} Intent</p>
+                <span className="text-2xl font-black italic opacity-10">{intent.weight}</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-6">{intent.desc}</p>
+              <div className="p-4 rounded-2xl" style={{ backgroundColor: `${intent.color}15`, border: `1px solid ${intent.color}30` }}>
+                <p className="text-[10px] font-black uppercase mb-1" style={{ color: intent.color }}>Action Plan:</p>
+                <p className="text-[11px] font-bold italic leading-snug">{intent.play}</p>
+              </div>
             </div>
-            <h4 className="text-xl font-black mb-3 text-gray-800 tracking-tight">Comparison Dominance</h4>
-            <p className="text-xs text-gray-500 leading-relaxed mb-6">High buoyancy on "Best of" queries. Google trusts our curation for high-value bento lunch bags.</p>
-            <div className="bg-blue-600 text-white p-5 rounded-2xl">
-              <p className="text-[10px] font-black uppercase mb-1 opacity-70">Actionable Play:</p>
-              <p className="text-xs font-bold leading-snug italic">"winning retrieval but missing conversions. Add 'Check Price' buttons directly to comparison tables."</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-8 rounded-[2.5rem] border-2 border-green-50 border-b-green-200 shadow-sm">
-            <div className="flex justify-between items-start mb-6">
-              <p className="text-green-600 font-black text-xs uppercase tracking-tighter">Informational Intent</p>
-              <span className="text-2xl font-black italic opacity-20">12%</span>
-            </div>
-            <h4 className="text-xl font-black mb-3 text-gray-800 tracking-tight">Knowledge Retrieval</h4>
-            <p className="text-xs text-gray-500 leading-relaxed mb-6">Capturing "How-to" traffic. Our sushi maker and chopstick guides are establishing nodes.</p>
-            <div className="bg-green-600 text-white p-5 rounded-2xl">
-              <p className="text-[10px] font-black uppercase mb-1 opacity-70">Actionable Play:</p>
-              <p className="text-xs font-bold leading-snug italic">"Inject VideoObject schema. Google is fanning out informational intent to video-first snippets."</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-8 rounded-[2.5rem] border-2 border-purple-50 border-b-purple-200 shadow-sm">
-            <div className="flex justify-between items-start mb-6">
-              <p className="text-purple-600 font-black text-xs uppercase tracking-tighter">Transactional Intent</p>
-              <span className="text-2xl font-black italic opacity-20">04%</span>
-            </div>
-            <h4 className="text-xl font-black mb-3 text-gray-800 tracking-tight">Direct Conversions</h4>
-            <p className="text-xs text-gray-500 leading-relaxed mb-6">Merchant Listing visibility is currently low. Potential leakage for specific SKU searches.</p>
-            <div className="bg-purple-600 text-white p-5 rounded-2xl">
-              <p className="text-[10px] font-black uppercase mb-1 opacity-70">Actionable Play:</p>
-              <p className="text-xs font-bold leading-snug italic">"Audit Merchant Center for 'Missing GTINs'. Google won't retrieve product nodes without manufacturer IDs."</p>
-            </div>
-          </div>
-
+          ))}
         </section>
 
-        {/* SECTION 3: VELOCITY TABLE */}
-        <section className="bg-white rounded-[3rem] border-2 border-gray-100 shadow-2xl overflow-hidden">
-          <div className="p-8 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="text-xl font-black italic tracking-tighter">Optimization Velocity (Delta Tracker)</h2>
-            <span className="px-4 py-1 bg-black text-white text-[10px] font-black rounded-full uppercase tracking-widest">Post-Retrieval Data</span>
+        {/* VELOCITY TABLE: Styled for Premium Depth */}
+        <section className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 shadow-2xl overflow-hidden mb-12">
+          <div className="p-8 border-b border-gray-50 bg-[#2D334A] text-white flex justify-between items-center">
+            <h2 className="text-lg font-black italic uppercase tracking-tighter">Optimization Velocity</h2>
+            <div className="flex gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#FF8A75]"></div>
+              <div className="w-2 h-2 rounded-full bg-[#79D2B5]"></div>
+              <div className="w-2 h-2 rounded-full bg-white/20"></div>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="text-[10px] uppercase font-black tracking-widest text-gray-400 bg-white">
+              <thead className="text-[10px] uppercase font-black tracking-widest text-gray-400 bg-gray-50/50">
                 <tr>
-                  <th className="px-10 py-6">Knowledge Node</th>
-                  <th className="px-10 py-6">Intent</th>
-                  <th className="px-10 py-6">Impressions Delta</th>
-                  <th className="px-10 py-6 text-right">AEO Status</th>
+                  <th className="px-8 py-5">Node / Rich Result</th>
+                  <th className="px-8 py-5 text-center">Intent</th>
+                  <th className="px-8 py-5 text-center text-[#2D334A]">Retrieval Lift</th>
+                  <th className="px-8 py-5 text-right">AEO Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {VELOCITY_DATA.map((row, idx) => (
-                  <tr key={idx} className="group hover:bg-gray-50 transition-all cursor-default">
-                    <td className="px-10 py-8">
-                      <p className="font-bold text-sm text-gray-900 mb-1 group-hover:text-blue-600">{row.url}</p>
-                      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{row.rich}</p>
+                  <tr key={idx} className="group hover:bg-[#FFF5F2]/50 transition-colors">
+                    <td className="px-8 py-6">
+                      <p className="font-bold text-sm text-[#2D334A] group-hover:text-[#FF8A75] transition-colors">{row.url}</p>
+                      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-1">{row.rich}</p>
                     </td>
-                    <td className="px-10 py-8">
-                      <span className="text-[10px] font-black border-2 border-gray-100 px-3 py-1.5 rounded-xl text-gray-500 uppercase">{row.intent}</span>
+                    <td className="px-8 py-6 text-center">
+                      <span className="text-[9px] font-black border border-gray-100 px-2 py-1 rounded text-gray-400 uppercase tracking-tighter">{row.intent}</span>
                     </td>
-                    <td className="px-10 py-8">
-                      <div className="flex flex-col leading-none">
-                        <span className="text-xl font-black text-gray-900 mb-1">{row.current.toLocaleString()}</span>
-                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-tighter">{row.lift} from {row.baseline}</span>
+                    <td className="px-8 py-6 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className="text-lg font-black text-[#2D334A] leading-none mb-1">{row.current.toLocaleString()}</span>
+                        <span className="text-[10px] font-bold text-[#79D2B5] uppercase">{row.lift}</span>
                       </div>
                     </td>
-                    <td className="px-10 py-8 text-right">
-                       <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm ${row.style}`}>
+                    <td className="px-8 py-6 text-right">
+                       <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${row.style}`}>
                         {row.status}
                       </span>
                     </td>
@@ -207,51 +166,27 @@ export default function AEOCommandCenter() {
           </div>
         </section>
 
-        {/* SEMANTIC RETRIEVAL STRATEGY */}
-        <section className="bg-gray-900 rounded-3xl p-8 text-white shadow-2xl mt-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h4 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                AEO Strategic Health
-              </h4>
-              <div className="space-y-5">
-                <div>
-                  <div className="flex justify-between text-xs font-bold mb-1 uppercase">
-                    <span className="text-green-400">Buoyant (Retrieved)</span>
-                    <span>25%</span>
-                  </div>
-                  <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-green-400 h-full w-1/4"></div></div>
+        {/* SEMANTIC PROGRESS BARS */}
+        <section className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 text-center">Semantic Network Coverage</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              { label: "Buoyant", color: "#79D2B5", p: "25%" },
+              { label: "Establishing", color: "#FF8A75", p: "25%" },
+              { label: "Missing", color: "#2D334A", p: "50%" }
+            ].map((bar, i) => (
+              <div key={i} className="flex flex-col items-center">
+                <div className="flex justify-between w-full text-[10px] font-black uppercase mb-3">
+                  <span style={{ color: bar.color }}>{bar.label}</span>
+                  <span className="text-gray-400">{bar.p}</span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-xs font-bold mb-1 uppercase">
-                    <span className="text-blue-400">Establishing</span>
-                    <span>25%</span>
-                  </div>
-                  <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-blue-400 h-full w-1/4"></div></div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs font-bold mb-1 uppercase">
-                    <span className="text-red-400">Missing (Debt)</span>
-                    <span>50%</span>
-                  </div>
-                  <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-red-400 h-full w-1/2"></div></div>
+                <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: bar.p, backgroundColor: bar.color }}></div>
                 </div>
               </div>
-            </div>
-            <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 backdrop-blur-sm">
-              <h5 className="text-xs font-bold text-blue-300 uppercase mb-3 tracking-widest">Analyst Recommendation</h5>
-              <p className="text-lg font-medium text-gray-200 leading-snug">
-                "Winning <span className="text-white border-b-2 border-blue-500">Selection</span> with 10%+ CTR. 50% of nodes are currently 'Blind' to AI crawlers. Priority: Inject FAQ/Product schema into the <strong>Sushi Maker</strong> and <strong>Accessories</strong> nodes."
-              </p>
-            </div>
+            ))}
           </div>
         </section>
-
-        {/* FOOTER ADVISORY */}
-        <footer className="mt-12 text-center">
-           <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.5em]">End of Intelligence Report • {CURRENT_DATE}</p>
-        </footer>
 
       </main>
     </div>
