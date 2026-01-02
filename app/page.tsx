@@ -1,163 +1,121 @@
 'use client';
 
 import React from 'react';
-
-// BRAND COLOR TOKENS (CSS Variables for easy updating)
-const BB_COLORS = {
-  primary: '#FF8A75',   // Warm Peach
-  secondary: '#79D2B5', // Mint Green
-  accent: '#2D334A',    // Deep Navy
-  light: '#FFF5F2',     // Soft Cream
-};
+import Image from 'next/image';
 
 const VELOCITY_DATA = [
-  { 
-    url: "/blogs/product-review/australia-insulated-lunch-bags-top-brands-2026", 
-    intent: "Commercial",
-    baseline: 647, 
-    current: 2130,
-    lift: "+229%", 
-    status: "Buoyant", 
-    rich: "Product Snippets",
-    style: "text-[#79D2B5] bg-[#79D2B5]/10 border-[#79D2B5]/20"
-  },
-  { 
-    url: "/blogs/product-review/lunchbox-solutions-for-busy-parents", 
-    intent: "Informational",
-    baseline: 0, 
-    current: 433,
-    lift: "NEW", 
-    status: "Establishing", 
-    rich: "How-To / FAQ",
-    style: "text-[#FF8A75] bg-[#FF8A75]/10 border-[#FF8A75]/20"
-  },
-  { 
-    url: "/products/lilac-montiico-750ml-sport-drink-bottle", 
-    intent: "Transactional",
-    baseline: 0, 
-    current: 18,
-    lift: "First Hit", 
-    status: "Establishing",
-    rich: "Merchant Listing",
-    style: "text-[#FF8A75] bg-[#FF8A75]/10 border-[#FF8A75]/20"
-  },
-  { 
-    url: "/blogs/recipes/easy-sushi-maker-kids-bento", 
-    intent: "Informational",
-    baseline: 0, 
-    current: 21,
-    lift: "Stalled", 
-    status: "Missing", 
-    rich: "None",
-    style: "text-red-400 bg-red-400/10 border-red-400/20"
-  }
+  { url: "/blogs/product-review/australia-insulated-lunch-bags-top-brands-2026", intent: "Commercial", baseline: 647, current: 2130, lift: "+229%", status: "Buoyant", rich: "Product Snippets", style: "text-green-600 bg-green-50 border-green-100" },
+  { url: "/blogs/product-review/lunchbox-solutions-for-busy-parents", intent: "Informational", baseline: 0, current: 433, lift: "NEW", status: "Establishing", rich: "How-To / FAQ", style: "text-blue-600 bg-blue-50 border-blue-100" },
+  { url: "/products/lilac-montiico-750ml-sport-drink-bottle", intent: "Transactional", baseline: 0, current: 18, lift: "First Hit", status: "Establishing", rich: "Merchant Listing", style: "text-blue-600 bg-blue-50 border-blue-100" },
+  { url: "/blogs/recipes/easy-sushi-maker-kids-bento", intent: "Informational", baseline: 0, current: 21, lift: "Stalled", status: "Missing", rich: "None", style: "text-red-600 bg-red-50 border-red-100" }
 ];
 
 export default function BabyBentoDashboard() {
   return (
-    /* 1. GLOBAL BACKGROUND: Deep atmospheric mesh-style gradient */
-    <div className="min-h-screen bg-[radial-gradient(at_0%_0%,#2A1A5E_0%,transparent_50%),radial-gradient(at_50%_0%,#3A2F8F_0%,transparent_50%),radial-gradient(at_50%_50%,#1E3A8A_0%,transparent_50%),radial-gradient(at_100%_100%,#0F4C75_0%,transparent_50%)] font-sans text-[#EAF2FF] pb-20" style={{ backgroundColor: '#2A1A5E' }}>
+    /* 1. GLOBAL BACKGROUND: Deep atmospheric mesh gradient */
+    <div className="min-h-screen bg-[radial-gradient(at_0%_0%,#2A1A5E_0%,transparent_50%),radial-gradient(at_50%_0%,#3A2F8F_0%,transparent_50%),radial-gradient(at_50%_50%,#1E3A8A_0%,transparent_50%),radial-gradient(at_100%_100%,#0F4C75_0%,transparent_50%)] font-sans text-white pb-20" style={{ backgroundColor: '#2A1A5E' }}>
       
       <main className="max-w-7xl mx-auto p-4 md:p-10">
         
-        {/* 2. REPORT HEADER: Soft, airy radial gradient container */}
-        <header className="mb-12 overflow-hidden rounded-[2.5rem] shadow-2xl border border-white/10">
-          <div className="bg-[radial-gradient(at_top_left,#FFF5F2_0%,#FFFFFF_40%,#F0FDF4_100%)] p-8 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-6 text-[#2D334A]">
-            
-            {/* 4. LOGO INTEGRATION & TITLE */}
-            <div className="flex items-center gap-6">
-              {/* Rounded, friendly Bento-style icon */}
-              <div className="w-16 h-16 bg-[#2D334A] rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-0 transition-transform cursor-pointer">
-                 <img src="/assets/baby-bento-logo.svg" alt="Baby Bento Logo" className="w-10 h-10" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-black tracking-tight uppercase italic leading-none">
-                  Baby Bento Dashboard – Dec 2025
-                </h1>
-                <p className="text-[#FF8A75] text-xs font-bold uppercase tracking-[0.3em] mt-2">AEO Intelligence & Intent Fan-out</p>
-              </div>
+        {/* 2. REPORT HEADER: Soft radial gradient with Logo */}
+        <header className="mb-12 overflow-hidden rounded-2xl shadow-2xl bg-[radial-gradient(at_top_left,#FFF5F2_0%,#FFFFFF_40%,#F0FDF4_100%)] text-[#2D334A] p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            {/* LOGO INTEGRATION: Using existing SVG asset */}
+            <div className="relative w-14 h-14 shrink-0">
+               <Image 
+                src="/assets/logo.svg" 
+                alt="Baby Bento Logo" 
+                fill 
+                className="object-contain"
+                priority
+               />
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="px-5 py-2 bg-[#2D334A] text-white rounded-xl text-xs font-black shadow-lg uppercase tracking-widest">
-                Merchant Pos: <span className="text-[#79D2B5]">2.85</span>
-              </div>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight uppercase italic">
+                Baby Bento Dashboard – Dec 2025
+              </h1>
+              <p className="text-[#FF8A75] text-[10px] font-black uppercase tracking-[0.4em] mt-1">AEO Intelligence Command</p>
             </div>
+          </div>
+          <div className="px-5 py-2 bg-[#2D334A] text-white rounded-xl text-xs font-black shadow-lg uppercase tracking-widest">
+            Merchant Pos: <span className="text-[#79D2B5]">2.85</span>
           </div>
         </header>
 
-        {/* SECTION: AEO SCORECARDS (Glassmorphism on Dark Gradient) */}
+        {/* 3. SECTION TILE: Amber Gold Highlight */}
+        <div className="inline-block rounded-md bg-[#FCD34D] text-[#2D334A] px-6 py-2 font-black uppercase tracking-widest text-[10px] mb-6 shadow-lg">
+           AEO Strategic Health
+        </div>
+
+        {/* 4. SCORECARDS: White backgrounds + Dark Navy Text */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {[
-            { label: "Selection Efficiency", val: "10.7%", sub: "Peak AEO CTR", color: "border-[#FF8A75]/30 text-[#FF8A75]" },
-            { label: "Model Authority", val: "2.85", sub: "Avg. Merchant Pos", color: "border-[#79D2B5]/30 text-[#79D2B5]" },
-            { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", color: "border-white/10 text-white" },
-            { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", color: "border-[#FF8A75]/30 text-[#FF8A75]" }
+            { label: "Selection Efficiency", val: "10.7%", sub: "Peak AEO CTR", accent: "border-[#FF8A75]" },
+            { label: "Model Authority", val: "2.85", sub: "Avg. Merchant Pos", accent: "border-[#79D2B5]" },
+            { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", accent: "border-[#2D334A]" },
+            { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", accent: "border-[#FF8A75]" }
           ].map((card, i) => (
-            <div key={i} className={`bg-white/5 backdrop-blur-xl p-6 rounded-4xl border shadow-2xl transition-all hover:-translate-y-1 ${card.color}`}>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{card.label}</p>
-              <h3 className="text-4xl font-black">{card.val}</h3>
-              <p className="text-[11px] mt-2 font-medium italic opacity-40">{card.sub}</p>
+            <div key={i} className={`bg-white rounded-2xl p-6 shadow-xl border-l-4 ${card.accent} transform transition-transform hover:scale-[1.03]`}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{card.label}</p>
+              <h3 className="text-4xl font-black text-[#2D334A]">{card.val}</h3>
+              <p className="text-[11px] mt-2 font-medium italic text-gray-500 opacity-80">{card.sub}</p>
             </div>
           ))}
         </section>
 
-        {/* SECTION: INTENT FAN-OUT (Actionable Insights) */}
+        {/* 5. INTENT METRIC HIGHLIGHTS: Warm Cream Backgrounds */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-0.5 w-8 bg-[#FF8A75]"></div>
+          <div className="h-0.5 w-8 bg-[#FCD34D]"></div>
           <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/40">Query Intent Fan-out</h2>
         </div>
         
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           {[
-            { title: "Commercial", weight: "84%", color: "#79D2B5", desc: "Best-of comparison dominance.", play: "Add 'Check Price' to tables." },
-            { title: "Informational", weight: "12%", color: "#FF8A75", desc: "How-to guides & recipes.", play: "Inject VideoObject schema." },
-            { title: "Transactional", weight: "04%", color: "#EAF2FF", desc: "Direct product SKU searches.", play: "Audit GTINs in Merchant Center." }
+            { title: "Commercial", weight: "84%", play: "Add 'Check Price' to tables." },
+            { title: "Informational", weight: "12%", play: "Inject VideoObject schema." },
+            { title: "Transactional", weight: "04%", play: "Audit GTINs in Merchant Center." }
           ].map((intent, i) => (
-            <div key={i} className="bg-[#2D334A]/40 backdrop-blur-md p-8 rounded-4xl border border-white/5 shadow-inner relative group transition-all hover:bg-[#2D334A]/60">
-              <div className="flex justify-between items-start mb-6">
-                <p className={`font-black text-xs uppercase tracking-tighter`} style={{ color: intent.color }}>{intent.title}</p>
-                <span className="text-3xl font-black italic opacity-10">{intent.weight}</span>
+            <div key={i} className="bg-[#FEF3C7] text-[#2D334A] p-8 rounded-4xl shadow-2xl relative overflow-hidden group">
+              <div className="flex justify-between items-start mb-4">
+                <p className="font-black text-xs uppercase tracking-tighter text-[#2D334A]/60">{intent.title} Intent</p>
+                <span className="text-3xl font-black italic text-[#2D334A]/10">{intent.weight}</span>
               </div>
-              <p className="text-sm text-white/60 mb-8 leading-relaxed">{intent.desc}</p>
-              <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                <p className="text-[10px] font-black uppercase mb-1 opacity-50">Strategic Play:</p>
-                <p className="text-xs font-bold italic leading-snug text-white">{intent.play}</p>
-              </div>
+              <h4 className="text-xl font-black mb-6">Strategic Play:</h4>
+              <p className="text-sm font-bold italic leading-relaxed border-l-2 border-[#2D334A]/20 pl-4">{intent.play}</p>
             </div>
           ))}
         </section>
 
-        {/* SECTION: VELOCITY TABLE (Contrast Optimized) */}
-        <section className="bg-white/5 backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-3xl overflow-hidden mb-12">
-          <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
-            <h2 className="text-lg font-black italic uppercase tracking-tighter text-[#79D2B5]">Optimization Velocity</h2>
-            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Dec 2025 Cycle</span>
+        {/* 6. VELOCITY TABLE: Preserving High Readability */}
+        <section className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden mb-12 border border-white/10">
+          <div className="p-8 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center text-[#2D334A]">
+            <h2 className="text-lg font-black italic uppercase tracking-tighter">Optimization Velocity</h2>
+            <span className="text-[9px] font-black bg-[#2D334A] text-white px-3 py-1 rounded-full uppercase tracking-widest">Post-Retrieval Data</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="text-[10px] uppercase font-black tracking-widest text-white/20">
+              <thead className="text-[10px] uppercase font-black tracking-widest text-gray-400 bg-gray-50/30">
                 <tr>
-                  <th className="px-10 py-6">Node / Rich Result</th>
+                  <th className="px-10 py-6">Knowledge Node</th>
                   <th className="px-10 py-6 text-center">Intent</th>
                   <th className="px-10 py-6 text-center">Retrieval Lift</th>
                   <th className="px-10 py-6 text-right">AEO Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-gray-100 text-[#2D334A]">
                 {VELOCITY_DATA.map((row, idx) => (
-                  <tr key={idx} className="group hover:bg-white/5 transition-colors">
+                  <tr key={idx} className="group hover:bg-gray-50 transition-colors">
                     <td className="px-10 py-8">
-                      <p className="font-bold text-sm text-white group-hover:text-[#FF8A75] transition-colors">{row.url}</p>
-                      <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">{row.rich}</p>
+                      <p className="font-bold text-sm group-hover:text-blue-600 transition-colors">{row.url}</p>
+                      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-1">{row.rich}</p>
                     </td>
                     <td className="px-10 py-8 text-center">
-                      <span className="text-[9px] font-black border border-white/10 px-3 py-1.5 rounded-lg text-white/40 uppercase tracking-tighter">{row.intent}</span>
+                      <span className="text-[9px] font-black border border-gray-200 px-3 py-1.5 rounded-lg text-gray-400 uppercase tracking-tighter">{row.intent}</span>
                     </td>
                     <td className="px-10 py-8 text-center">
-                      <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-white leading-none mb-1">{row.current.toLocaleString()}</span>
-                        <span className="text-[10px] font-bold text-[#79D2B5] uppercase">{row.lift}</span>
+                      <div className="flex flex-col items-center leading-none">
+                        <span className="text-xl font-black mb-1">{row.current.toLocaleString()}</span>
+                        <span className="text-[10px] font-black text-blue-500 uppercase">{row.lift}</span>
                       </div>
                     </td>
                     <td className="px-10 py-8 text-right">
@@ -169,28 +127,6 @@ export default function BabyBentoDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        {/* SEMANTIC PROGRESS BARS */}
-        <section className="bg-white/5 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/10 shadow-sm">
-          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-8 text-center">Semantic Network Coverage</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              { label: "Buoyant", color: "#79D2B5", p: "25%" },
-              { label: "Establishing", color: "#FF8A75", p: "25%" },
-              { label: "Missing", color: "#2D334A", p: "50%" }
-            ].map((bar, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div className="flex justify-between w-full text-[10px] font-black uppercase mb-3">
-                  <span style={{ color: bar.color }}>{bar.label}</span>
-                  <span className="text-white/40">{bar.p}</span>
-                </div>
-                <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: bar.p, backgroundColor: bar.color }}></div>
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 
