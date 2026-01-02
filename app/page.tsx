@@ -56,7 +56,7 @@ const VELOCITY_DATA = [
 export default function BabyBentoDashboard() {
   return (
     // GRADIENT BACKGROUND: Subtle modern mesh gradient
-    <div className="min-h-screen bg-[radial-gradient(at_top_left,_#FFF5F2_0%,_#FFFFFF_40%,_#F0FDF4_100%)] font-sans text-[#2D334A] pb-20">
+    <div className="min-h-screen bg-[radial-gradient(at_top_left,#FFF5F2_0%,#FFFFFF_40%,#F0FDF4_100%)] font-sans text-[#2D334A] pb-20">
       
       <main className="max-w-7xl mx-auto p-4 md:p-10">
         
@@ -89,7 +89,7 @@ export default function BabyBentoDashboard() {
             { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", color: "border-[#2D334A]/10 text-[#2D334A]" },
             { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", color: "border-[#FF8A75]/30 text-[#FF8A75]" }
           ].map((card, i) => (
-            <div key={i} className={`bg-white/60 backdrop-blur-md p-6 rounded-[2rem] border-2 shadow-sm transition-all hover:shadow-xl hover:shadow-[#FF8A75]/5 ${card.color}`}>
+            <div key={i} className={`bg-white/60 backdrop-blur-md p-6 rounded-4xl border-2 shadow-sm transition-all hover:shadow-xl hover:shadow-[#FF8A75]/5 ${card.color}`}>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">{card.label}</p>
               <h3 className="text-4xl font-black">{card.val}</h3>
               <p className="text-[11px] mt-2 font-medium italic opacity-60">{card.sub}</p>
@@ -104,7 +104,7 @@ export default function BabyBentoDashboard() {
             { title: "Informational", weight: "12%", color: "#FF8A75", desc: "How-to guides & recipes.", play: "Inject VideoObject schema." },
             { title: "Transactional", weight: "04%", color: "#2D334A", desc: "Direct product SKU searches.", play: "Audit GTINs in Merchant Center." }
           ].map((intent, i) => (
-            <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+            <div key={i} className="bg-white p-6 rounded-4xl border border-gray-100 shadow-sm relative overflow-hidden group">
               <div className="flex justify-between items-start mb-4">
                 <p className={`font-black text-xs uppercase tracking-tighter`} style={{ color: intent.color }}>{intent.title} Intent</p>
                 <span className="text-2xl font-black italic opacity-10">{intent.weight}</span>
