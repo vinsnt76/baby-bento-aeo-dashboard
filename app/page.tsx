@@ -56,22 +56,19 @@ const VELOCITY_DATA = [
 export default function BabyBentoDashboard() {
   return (
     /* 1. GLOBAL BACKGROUND: Deep atmospheric mesh-style gradient */
-    <div className="min-h-screen bg-[#2A1A5E] bg-[radial-gradient(at_0%_0%,_#2A1A5E_0%,_transparent_50%),_radial-gradient(at_50%_0%,_#3A2F8F_0%,_transparent_50%),_radial-gradient(at_50%_50%,_#1E3A8A_0%,_transparent_50%),_radial-gradient(at_100%_100%,_#0F4C75_0%,_transparent_50%)] font-sans text-[#EAF2FF] pb-20">
+    <div className="min-h-screen bg-[radial-gradient(at_0%_0%,#2A1A5E_0%,transparent_50%),radial-gradient(at_50%_0%,#3A2F8F_0%,transparent_50%),radial-gradient(at_50%_50%,#1E3A8A_0%,transparent_50%),radial-gradient(at_100%_100%,#0F4C75_0%,transparent_50%)] font-sans text-[#EAF2FF] pb-20" style={{ backgroundColor: '#2A1A5E' }}>
       
       <main className="max-w-7xl mx-auto p-4 md:p-10">
         
         {/* 2. REPORT HEADER: Soft, airy radial gradient container */}
         <header className="mb-12 overflow-hidden rounded-[2.5rem] shadow-2xl border border-white/10">
-          <div className="bg-[radial-gradient(at_top_left,_#FFF5F2_0%,_#FFFFFF_40%,_#F0FDF4_100%)] p-8 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-6 text-[#2D334A]">
+          <div className="bg-[radial-gradient(at_top_left,#FFF5F2_0%,#FFFFFF_40%,#F0FDF4_100%)] p-8 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-6 text-[#2D334A]">
             
             {/* 4. LOGO INTEGRATION & TITLE */}
             <div className="flex items-center gap-6">
               {/* Rounded, friendly Bento-style icon */}
               <div className="w-16 h-16 bg-[#2D334A] rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-0 transition-transform cursor-pointer">
-                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF8A75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                   <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                 </svg>
+                 <img src="/assets/baby-bento-logo.svg" alt="Baby Bento Logo" className="w-10 h-10" />
               </div>
               <div>
                 <h1 className="text-3xl font-black tracking-tight uppercase italic leading-none">
@@ -97,7 +94,7 @@ export default function BabyBentoDashboard() {
             { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", color: "border-white/10 text-white" },
             { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", color: "border-[#FF8A75]/30 text-[#FF8A75]" }
           ].map((card, i) => (
-            <div key={i} className={`bg-white/5 backdrop-blur-xl p-6 rounded-4xl border shadow-2xl transition-all hover:translate-y-[-4px] ${card.color}`}>
+            <div key={i} className={`bg-white/5 backdrop-blur-xl p-6 rounded-4xl border shadow-2xl transition-all hover:-translate-y-1 ${card.color}`}>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{card.label}</p>
               <h3 className="text-4xl font-black">{card.val}</h3>
               <p className="text-[11px] mt-2 font-medium italic opacity-40">{card.sub}</p>
@@ -107,7 +104,7 @@ export default function BabyBentoDashboard() {
 
         {/* SECTION: INTENT FAN-OUT (Actionable Insights) */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-[2px] w-8 bg-[#FF8A75]"></div>
+          <div className="h-0.5 w-8 bg-[#FF8A75]"></div>
           <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/40">Query Intent Fan-out</h2>
         </div>
         
