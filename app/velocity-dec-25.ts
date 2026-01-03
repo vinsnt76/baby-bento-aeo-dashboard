@@ -1,20 +1,26 @@
-import { VelocityRecord } from "./types";
-
-export const VELOCITY_DEC_25: VelocityRecord[] = [
+export const VELOCITY_DEC_25 = [
   {
     node: "Insulated Solutions",
-    intent: "Commercial",
     url: "/collections/insulated-lunch-boxes",
-    retrievalLift: 0.12, // +12%
+    intent: "Commercial",
+    lift: "12%",
     status: "Buoyant",
     topQuery: "best insulated lunch box australia"
   },
   {
     node: "Stainless Steel",
-    intent: "Transactional",
     url: "/collections/metal-bento-boxes",
-    retrievalLift: 0.08,
+    intent: "Transactional",
+    lift: "8%",
     status: "Establishing",
-    topQuery: "stainless steel bento box leakproof"
+    topQuery: "leakproof metal bento"
+  },
+  {
+    node: "Thermal Containers",
+    url: "/collections/thermal-containers",
+    intent: "Informational",
+    lift: "N/A",
+    status: "Missing",
+    topQuery: "how to keep soup hot in lunchbox"
   }
 ];
