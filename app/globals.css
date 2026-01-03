@@ -3,11 +3,6 @@
 :root {
   --background: #F8F5F1; /* Unicorn White */
   --foreground: #2D334A; /* Dark Navy */
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

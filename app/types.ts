@@ -17,3 +17,12 @@ export type AEOBaseline = {
   snapshotMonth: string;
   data: SearchAppearanceRecord[];
 };
+
+export type VelocityRecord = {
+  node: string;
+  intent: string;
+  url: string;
+  retrievalLift: number;
+  status: string;
+  topQuery: string;
+};
