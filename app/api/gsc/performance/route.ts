@@ -19,12 +19,11 @@ export async function GET() {
 
   try {
     // 3. Setup Auth with RSA Key Fix
-    const auth = new google.auth.JWT(
-      clientEmail,
-      undefined,
-      privateKey.replace(/\\n/g, '\n'), // Fixes the Vercel newline issue
-      ['https://www.googleapis.com/auth/webmasters.readonly']
-    );
+    const auth = new google.auth.JWT({
+      email: clientEmail,
+      key: privateKey.replace(/\\n/g, '\n'), // Fixes the Vercel newline issue
+      scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
+    });
 
     const searchconsole = google.searchconsole({ version: 'v1', auth });
 
