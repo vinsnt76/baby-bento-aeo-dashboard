@@ -1,6 +1,7 @@
 import React from 'react';
 import { BASELINE_DEC_25 } from './baseline-dec-25';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
+import DeltaRadar from './DeltaRadar';
 
 export default function AEOView() {
   const aeoData = BASELINE_DEC_25.data;
@@ -152,6 +153,9 @@ export default function AEOView() {
           </div>
         </div>
       </section>
+
+      {/* DELTA ENGINE: Retrieval Gap Analysis */}
+      <DeltaRadar />
     </div>
   );
 }
