@@ -9,19 +9,27 @@ export async function GET() {
 
   // 2. Validate Env Variables
   const clientEmail = process.env.GSC_CLIENT_EMAIL;
-  const privateKey = process.env.GSC_PRIVATE_KEY;
   const siteUrl = process.env.GSC_SITE_URL;
+  const rawKey = process.env.GSC_PRIVATE_KEY;
 
-  if (!clientEmail || !privateKey || !siteUrl) {
+  if (!clientEmail || !rawKey || !siteUrl) {
     console.error("❌ [GSC API] Missing Environment Variables");
     return NextResponse.json({ error: "Configuration Missing" }, { status: 500 });
   }
 
   try {
-    // 3. Setup Auth with RSA Key Fix
+    // 3. SECURE RSA KEY CLEANING (Fixes DECODER routines::unsupported)
+    // - .replace(/\\n/g, '\n') converts literal '\n' text into real line breaks
+    // - .replace(/"/g, '') removes any accidental double quotes from the string
+    // - .trim() removes stray leading/trailing spaces
+    const formattedKey = rawKey
+      .replace(/\\n/g, '\n')
+      .replace(/"/g, '')
+      .trim();
+
     const auth = new google.auth.JWT({
       email: clientEmail,
-      key: privateKey.replace(/\\n/g, '\n'), // Fixes the Vercel newline issue
+      key: formattedKey,
       scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
     });
 
@@ -55,6 +63,13 @@ export async function GET() {
 
   } catch (error: any) {
     console.error("❌ [GSC API] Google SDK Error:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    
+    // Specifically catch the "unsupported" decoder error for the UI
+    const isDecoderError = error.message.includes('DECODER');
+    const displayError = isDecoderError 
+      ? "RSA Key Decoder Error: Check Private Key formatting in your .env" 
+      : error.message;
+
+    return NextResponse.json({ error: displayError }, { status: 500 });
   }
 }
