@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import DownloadButton from './DownloadButton';
+import { BASELINE_DEC_25 } from './baseline-dec-25';
 
 export const metadata = {
   title: "Baby Bento Dashboard – December 25 Baseline Performance",
@@ -14,6 +15,17 @@ const VELOCITY_DATA = [
 ];
 
 export default function BabyBentoDashboard() {
+  const aeoData = BASELINE_DEC_25.data;
+  const lastUpdated = BASELINE_DEC_25.snapshotMonth;
+
+  const snippetReach = aeoData.find(d => d.appearance === "Product snippets")?.current.impressions || 0;
+  const merchantPos = aeoData.find(d => d.appearance === "Merchant listings")?.current.position || 0;
+  const merchantCtr = aeoData.find(d => d.appearance === "Merchant listings")?.current.ctr || 0;
+
+  const fmtSnippetReach = (snippetReach / 1000).toFixed(1) + 'k';
+  const fmtMerchantPos = merchantPos.toFixed(2);
+  const fmtMerchantCtr = (merchantCtr * 100).toFixed(1) + '%';
+
   return (
     /* 1. GLOBAL BACKGROUND: Multi-point Radial Mesh Gradient */
     <div className="min-h-screen bg-[radial-gradient(at_top_left,#2A1A5E_0%,transparent_50%),radial-gradient(at_bottom_right,#0F4C75_0%,transparent_50%),radial-gradient(at_center,#3A2F8F_10%,transparent_80%)] bg-fixed font-sans text-[#2D334A] pb-20" style={{ backgroundColor: '#2A1A5E' }}>
@@ -38,14 +50,14 @@ export default function BabyBentoDashboard() {
               <h1 className="text-3xl font-semibold tracking-tight text-[#2D334A]">
                 Baby Bento Dashboard
               </h1>
-              <p className="text-sm tracking-wide text-[#6B7280] mt-1">DECEMBER 25 BASELINE PERFORMANCE</p>
+              <p className="text-sm tracking-wide text-[#6B7280] mt-1">{lastUpdated.toUpperCase()} BASELINE PERFORMANCE</p>
               <p className="text-xs font-bold tracking-widest text-[#FF6F61] mt-1">AEO INTELLIGENCE REPORT</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <DownloadButton />
             <div className="px-6 py-3 bg-[#2D334A] text-white rounded-xl text-xs font-black shadow-xl uppercase tracking-widest transform hover:scale-105 transition-transform">
-              Merchant Pos: <span className="text-[#79D2B5]">2.85</span>
+              Merchant Pos: <span className="text-[#79D2B5]">{fmtMerchantPos}</span>
             </div>
           </div>
         </header>
@@ -59,9 +71,9 @@ export default function BabyBentoDashboard() {
           {/* 4. SCORECARDS: White backgrounds + Dark Navy Text */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { label: "Selection Efficiency", val: "10.7%", sub: "Peak AEO CTR", border: "border-[#FCD34D]" },
-              { label: "Model Authority", val: "2.85", sub: "Avg. Merchant Pos", border: "border-[#A7F3D0]" },
-              { label: "Retrieval Volume", val: "22.8k", sub: "Rich Impressions", border: "border-[#7DD3FC]" },
+              { label: "Selection Efficiency", val: fmtMerchantCtr, sub: "Peak AEO CTR", border: "border-[#FCD34D]" },
+              { label: "Model Authority", val: fmtMerchantPos, sub: "Avg. Merchant Pos", border: "border-[#A7F3D0]" },
+              { label: "Retrieval Volume", val: fmtSnippetReach, sub: "Rich Impressions", border: "border-[#7DD3FC]" },
               { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", border: "border-[#FCA5A5]" }
             ].map((card, i) => (
               <div key={i} className={`bg-[#F8F5F1] rounded-xl p-6 shadow-sm border-4 ${card.border} transform transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg`}>
