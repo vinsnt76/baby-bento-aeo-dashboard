@@ -10,35 +10,41 @@ export type DeltaResult = {
   recommendation: string;
 };
 
-export function calculateDelta(liveGscData: any[]): DeltaResult[] {
+export function calculateDelta(liveGscData: any[]): any[] {
+  // If the API failed or is empty, return an empty array to prevent UI crashes
+  if (!Array.isArray(liveGscData)) return [];
+
   return VELOCITY_DEC_25.map((node) => {
-    // Find matching live data based on the Top Query
-    const liveMatch = liveGscData.find(
-      (row) => row.keys[0].toLowerCase() === node.topQuery.toLowerCase()
-    );
+    // 🔍 THE FUZZY HANDSHAKE
+    // This finds a match even if the query is slightly different (e.g. "lunchbox" vs "lunch box")
+    const liveMatch = liveGscData.find((row: any) => {
+      if (!row.keys || !row.keys[0]) return false;
+
+      const gscQuery = row.keys[0].toLowerCase().trim();
+      const baselineQuery = node.topQuery.toLowerCase().trim();
+      
+      return gscQuery.includes(baselineQuery) || baselineQuery.includes(gscQuery);
+    });
 
     const livePos = liveMatch ? liveMatch.position : 0;
     const liveClicks = liveMatch ? liveMatch.clicks : 0;
 
-    // Logic: If ranking high in search but status is "Missing" in AEO, Gap is High.
+    // 🚩 GAP CALCULATION
+    // High Gap Score = High Google Rank (Top 15) but Missing AEO status
     let gapScore = 0;
-    if (livePos > 0 && livePos < 10) {
-      if (node.status === 'Missing') gapScore = 90;
-      else if (node.status === 'Establishing') gapScore = 40;
+    if (livePos > 0 && livePos <= 15) {
+      if (node.status === 'Missing') gapScore = 95;
+      else if (node.status === 'Establishing') gapScore = 65;
+    } else if (livePos > 15 && livePos <= 30) {
+      if (node.status === 'Missing') gapScore = 40;
     }
 
-    let recommendation = "Maintain current structure.";
-    if (gapScore > 50) recommendation = "Urgent: Add Product Schema / Merchant Feeds.";
-    if (livePos > 20 && node.status === 'Buoyant') recommendation = "Improve content depth to match snippet authority.";
-
     return {
-      node: node.node,
-      url: node.url,
-      status: node.status,
+      ...node, // Pass through original baseline data
       livePosition: Number(livePos.toFixed(1)),
       liveClicks: liveClicks,
-      gapScore,
-      recommendation
+      gapScore: gapScore,
+      recommendation: gapScore > 70 ? "URGENT: Deploy Semantic Schema" : "Monitor"
     };
   });
 }
