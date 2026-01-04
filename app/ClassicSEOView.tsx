@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import DeltaRadar from './DeltaRadar';
 
 export default function ClassicSEOView() {
-  const [data, setData] = useState<any[]>([]); // Initialize as empty array
+  const [data, setData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
   const [error, setError] = useState<string | null>(null); // Add error state
   const [loading, setLoading] = useState(true);
 
@@ -15,9 +15,9 @@ export default function ClassicSEOView() {
         const json = await res.json();
         
         // 🛡️ CHECK: If the API returned an error object instead of an array
-        if (json.error || !Array.isArray(json)) {
+        if (json.error || !json.current) {
           setError(json.error || "Failed to retrieve valid data format.");
-          setData([]);
+          setData({ current: [], previous: [] });
         } else {
           setData(json);
           setError(null);
@@ -43,8 +43,8 @@ export default function ClassicSEOView() {
   );
 
   // 📊 Calculate Aggregates
-  const totalClicks = data.reduce((acc, row) => acc + (row.clicks || 0), 0);
-  const totalImpressions = data.reduce((acc, row) => acc + (row.impressions || 0), 0);
+  const totalClicks = data.current.reduce((acc: number, row: any) => acc + (row.clicks || 0), 0);
+  const totalImpressions = data.current.reduce((acc: number, row: any) => acc + (row.impressions || 0), 0);
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   return (
@@ -70,7 +70,7 @@ export default function ClassicSEOView() {
         </div>
       </div>
 
-      <DeltaRadar />
+      <DeltaRadar currentData={data.current} previousData={data.previous} />
 
       {/* 📈 Live Performance Table */}
       <div className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden">
@@ -83,7 +83,7 @@ export default function ClassicSEOView() {
             </tr>
           </thead>
           <tbody>
-            {data.slice(0, 10).map((row, i) => (
+            {data.current.slice(0, 10).map((row: any, i: number) => (
               <tr key={i} className="border-t border-white/5 hover:bg-white/2 transition-colors">
                 <td className="p-4 font-medium text-white">{row.keys[0]}</td>
                 <td className="p-4 text-zinc-400">{row.clicks}</td>

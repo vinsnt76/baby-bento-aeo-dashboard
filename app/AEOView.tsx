@@ -1,9 +1,28 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { BASELINE_DEC_25 } from './baseline-dec-25';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
 
 export default function AEOView() {
+  const [liveData, setLiveData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
+
+  useEffect(() => {
+    async function fetchLive() {
+      try {
+        const res = await fetch('/api/gsc/performance');
+        const json = await res.json();
+        if (json.current) {
+          setLiveData(json);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    fetchLive();
+  }, []);
+
   const aeoData = BASELINE_DEC_25.data;
   
   const snippetReach = aeoData.find(d => d.appearance === "Product snippets")?.current.impressions || 0;
@@ -155,7 +174,7 @@ export default function AEOView() {
       </section>
 
       {/* DELTA ENGINE: Retrieval Gap Analysis */}
-      <DeltaRadar />
+      <DeltaRadar currentData={liveData.current} previousData={liveData.previous} />
     </div>
   );
 }
