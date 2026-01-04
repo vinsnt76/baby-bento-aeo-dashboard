@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 export default function ClassicSEOView() {
   const [data, setData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
+  const [filter, setFilter] = useState<'all' | 'branded' | 'non-branded'>('all');
   const [error, setError] = useState<string | null>(null); // Add error state
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +47,26 @@ export default function ClassicSEOView() {
   const totalImpressions = data.current.reduce((acc: number, row: any) => acc + (row.impressions || 0), 0);
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
+  const filteredData = useMemo(() => {
+    const brandTerms = [
+      'baby bento', 
+      'babybento', 
+      'baby-bento', 
+      'bb bento', 
+      'bento baby',
+      'baby bento box'
+    ];
+
+    return data.current.filter((row: any) => {
+      const query = row.keys[0].toLowerCase();
+      const isBranded = brandTerms.some(term => query.includes(term));
+      
+      if (filter === 'branded') return isBranded;
+      if (filter === 'non-branded') return !isBranded;
+      return true; // 'all'
+    });
+  }, [data.current, filter]);
+
   return (
     <div className="space-y-8 animate-fadeIn">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -69,6 +90,20 @@ export default function ClassicSEOView() {
         </div>
       </div>
 
+      <div className="flex bg-slate-800 p-1 rounded-lg w-fit mb-4 border border-white/5">
+        {['all', 'branded', 'non-branded'].map((type) => (
+          <button
+            key={type}
+            onClick={() => setFilter(type as any)}
+            className={`px-3 py-1 text-[10px] uppercase font-bold rounded-md transition-all ${
+              filter === type ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            {type.replace('-', ' ')}
+          </button>
+        ))}
+      </div>
+
       {/* 📈 Live Performance Table */}
       <div className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden">
         <table className="w-full text-left border-collapse">
@@ -80,7 +115,7 @@ export default function ClassicSEOView() {
             </tr>
           </thead>
           <tbody>
-            {data.current.slice(0, 10).map((row: any, i: number) => (
+            {filteredData.slice(0, 10).map((row: any, i: number) => (
               <tr key={i} className="border-t border-white/5 hover:bg-white/2 transition-colors">
                 <td className="p-4 font-medium text-white">{row.keys[0]}</td>
                 <td className="p-4 text-zinc-400">{row.clicks}</td>

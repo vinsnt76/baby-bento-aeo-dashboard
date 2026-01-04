@@ -20,7 +20,14 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       const tokens = node.node.toLowerCase().split(' ');
       
       // BRANDED FILTER LOGIC
-      const brandTerms = ['baby', 'bento', 'bb'];
+      const brandTerms = [
+        'baby bento', 
+        'babybento', 
+        'baby-bento', 
+        'bb bento', 
+        'bento baby',
+        'baby bento box'
+      ];
       
       // Filter all queries matching this node's tokens
       const nodeQueries = currentData?.filter(r => 
