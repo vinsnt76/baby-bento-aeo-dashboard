@@ -18,11 +18,11 @@ export type AEOBaseline = {
   data: SearchAppearanceRecord[];
 };
 
-export type VelocityRecord = {
+export interface VelocityRecord {
   node: string;
-  intent: string;
-  url: string;
-  retrievalLift: number;
-  status: string;
   topQuery: string;
-};
+  url: string;
+  status: 'Missing' | 'Establishing' | 'Optimizing' | 'Optimal';
+  retrievalLift: number; // Changed from string to number
+  volume: string;
+}

@@ -1,27 +1,25 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
-// 1. Force 24-hour revalidation to save API quota
 export const revalidate = 86400; 
 
 export async function GET() {
-  console.log("🚀 [GSC API] Initiating Performance Fetch...");
-
-  // 2. Validate Env Variables
   const clientEmail = process.env.GSC_CLIENT_EMAIL;
   const siteUrl = process.env.GSC_SITE_URL;
   const rawKey = process.env.GSC_PRIVATE_KEY;
 
   if (!clientEmail || !rawKey || !siteUrl) {
-    console.error("❌ [GSC API] Missing Environment Variables");
     return NextResponse.json({ error: "Configuration Missing" }, { status: 500 });
   }
 
-  try {
-    // 3. SECURE RSA KEY CLEANING (Fixes DECODER routines::unsupported)
-    // - .replace(/\\n/g, '\n') converts literal '\n' text into real line breaks
-    // - .replace(/"/g, '') removes any accidental double quotes from the string
-    // - .trim() removes stray leading/trailing spaces
+  console.log("KEY START:", rawKey.substring(0, 30));
+  console.log("KEY END:", rawKey.substring(rawKey.length - 30));
+  console.log("HAS_LITERAL_N:", rawKey.includes("\\n"));
+  console.log("HAS_REAL_NEWLINES:", rawKey.includes("\n"));
+  console.log("KEY_LENGTH:", rawKey.length);
+
+try {
+    // 3. Apply the "Final Boss Sanitizer"
     const formattedKey = rawKey
       .replace(/\\n/g, '\n')
       .replace(/"/g, '')
@@ -34,42 +32,21 @@ export async function GET() {
     });
 
     const searchconsole = google.searchconsole({ version: 'v1', auth });
-
-    // 4. Define Date Range (Last 30 days)
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 2); // GSC data has a 2-day lag
-
-    // 5. Query Search Console
     const response = await searchconsole.searchanalytics.query({
       siteUrl: siteUrl,
       requestBody: {
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
-        dimensions: ['query', 'page'],
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        dimensions: ['query'],
         rowLimit: 50,
       },
     });
 
-    const rows = response.data.rows || [];
-    console.log(`✅ [GSC API] Successfully retrieved ${rows.length} rows.`);
-
-    return NextResponse.json(rows, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=43200',
-      },
-    });
+    console.log(`✅ [GSC API] SUCCESS!`);
+    return NextResponse.json(response.data.rows || []);
 
   } catch (error: any) {
-    console.error("❌ [GSC API] Google SDK Error:", error.message);
-    
-    // Specifically catch the "unsupported" decoder error for the UI
-    const isDecoderError = error.message.includes('DECODER');
-    const displayError = isDecoderError 
-      ? "RSA Key Decoder Error: Check Private Key formatting in your .env" 
-      : error.message;
-
-    return NextResponse.json({ error: displayError }, { status: 500 });
+    console.error("❌ [GSC API] Error:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
