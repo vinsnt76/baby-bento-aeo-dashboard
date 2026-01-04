@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DeltaRadar from './DeltaRadar';
 
 export default function ClassicSEOView() {
   const [data, setData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
@@ -69,8 +68,6 @@ export default function ClassicSEOView() {
           </h3>
         </div>
       </div>
-
-      <DeltaRadar currentData={data.current} previousData={data.previous} />
 
       {/* 📈 Live Performance Table */}
       <div className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden">

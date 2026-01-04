@@ -76,9 +76,40 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
         branded: brandedClicks,
         nonBranded: nonBrandedClicks,
         ownershipScore,
+        rawMomentum: momentum,
       };
     });
   }, [currentData, previousData]);
+
+  const insights = useMemo(() => {
+    if (!mergedData.length) return {};
+    
+    // Sort nodes to find specific performance archetypes
+    const sortedByOwnership = [...mergedData].sort((a, b) => b.nonBranded - a.nonBranded); // Using nonBranded count/share proxy
+    const sortedByMomentum = [...mergedData].sort((a, b) => (b.rawMomentum || 0) - (a.rawMomentum || 0));
+    const weakestNode = [...mergedData].sort((a, b) => a.formationScore - b.formationScore)[0];
+
+    const topOwner = sortedByOwnership[0];
+    const topClimber = sortedByMomentum[0];
+
+    return {
+      ownership: {
+        title: "Ownership Signal",
+        text: `${topOwner.name} leads in non-branded discovery. This entity is successfully decoupling from brand-only searches.`,
+        color: "blue"
+      },
+      momentum: {
+        title: "Momentum Alert",
+        text: `${topClimber.name} shows the strongest velocity (Score: ${topClimber.formationScore}). Expect increased AI-overviews for this node shortly.`,
+        color: "pink"
+      },
+      action: {
+        title: "Next Best Action",
+        text: `Priority: ${weakestNode.name}. Low semantic density detected. Deploy FAQ schema or supporting articles to reinforce this entity's 'Establishing' phase.`,
+        color: "slate"
+      }
+    };
+  }, [mergedData]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-slate-900 rounded-xl border border-white/5">
@@ -169,29 +200,24 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
 
       {/* 🧠 STRATEGIC INSIGHT ENGINE */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 lg:col-span-2">
-        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-          <h4 className="text-blue-400 text-xs font-black uppercase mb-1">Ownership Signal</h4>
-          <p className="text-slate-300 text-xs leading-relaxed">
-            Non-branded share is highest for <strong>Insulated Lunch Boxes</strong>. This indicates 
-            the entity is forming independently of brand recognition.
-          </p>
-        </div>
-        
-        <div className="p-4 bg-pink-500/10 border border-pink-500/20 rounded-lg">
-          <h4 className="text-pink-400 text-xs font-black uppercase mb-1">Momentum Alert</h4>
-          <p className="text-slate-300 text-xs leading-relaxed">
-            <strong>Stainless Steel</strong> shows +12% momentum. Expect this node to cross 
-            the "Optimal" threshold within the next 48-hour index cycle.
-          </p>
-        </div>
-
-        <div className="p-4 bg-slate-800 border border-white/5 rounded-lg">
-          <h4 className="text-slate-400 text-xs font-black uppercase mb-1">Next Best Action</h4>
-          <p className="text-slate-300 text-xs leading-relaxed">
-            Increase semantic density for <strong>Thermal Containers</strong> by implementing 
-            FAQ schema to capture long-tail query diversity.
-          </p>
-        </div>
+        {Object.values(insights).map((insight: any) => (
+          <div key={insight.title} className={`p-4 rounded-lg border ${
+            insight.color === 'blue' ? 'bg-blue-500/10 border-blue-500/20' :
+            insight.color === 'pink' ? 'bg-pink-500/10 border-pink-500/20' :
+            'bg-slate-800 border-white/5'
+          }`}>
+            <h4 className={`text-xs font-black uppercase mb-1 ${
+              insight.color === 'blue' ? 'text-blue-400' :
+              insight.color === 'pink' ? 'text-pink-400' :
+              'text-slate-400'
+            }`}>
+              {insight.title}
+            </h4>
+            <p className="text-slate-300 text-xs leading-relaxed">
+              {insight.text}
+            </p>
+          </div>
+        ))}
       </div>
 
     </div>
