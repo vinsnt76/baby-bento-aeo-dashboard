@@ -132,10 +132,10 @@ export default function AEOView() {
                       <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">{item.url}</div>
                     </td>
                     <td className="px-8 py-8 text-center">
-                      <span className="text-[9px] font-black border border-white/10 px-3 py-1.5 rounded-lg text-white/50 uppercase tracking-tighter">{item.intent}</span>
+                      <span className="text-[9px] font-black border border-white/10 px-3 py-1.5 rounded-lg text-white/50 uppercase tracking-tighter">{item.volume}</span>
                     </td>
                     <td className="px-8 py-8 text-center">
-                      <span className="text-[10px] font-black text-[#FF6F61] uppercase font-mono">{item.lift}</span>
+                      <span className="text-[10px] font-black text-[#FF6F61] uppercase font-mono">{item.retrievalLift}%</span>
                     </td>
                     <td className="px-8 py-8 text-right">
                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
