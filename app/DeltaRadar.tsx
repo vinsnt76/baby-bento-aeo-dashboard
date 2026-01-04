@@ -127,7 +127,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
           Entity Formation Radar
           <span className="text-[10px] text-blue-400 uppercase tracking-widest">Semantic Health</span>
         </h3>
-        <div className="h-75">
+        <div className="h-75 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={mergedData}>
               <PolarGrid stroke="#334155" />
@@ -188,7 +188,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
           </div>
         </div>
         
-        <div className="h-96">
+        <div className="h-75 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={mergedData} layout="vertical" margin={{ left: 40 }}>
               <XAxis type="number" hide />
