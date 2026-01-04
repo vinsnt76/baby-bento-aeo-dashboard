@@ -139,8 +139,8 @@ export default function AEOView() {
                     </td>
                     <td className="px-8 py-8 text-right">
                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                         item.status === 'Buoyant' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
-                         item.status === 'Establishing' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 
+                         item.status === 'Optimal' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
+                         (item.status === 'Establishing' || item.status === 'Optimizing') ? 'bg-blue-100 text-blue-800 border border-blue-200' : 
                          'bg-[#FF6F61]/10 text-[#FF6F61] border border-[#FF6F61]/20'
                        }`}>
                         {item.status}
