@@ -23,6 +23,6 @@ export interface VelocityRecord {
   topQuery: string;
   url: string;
   status: 'Missing' | 'Establishing' | 'Optimizing' | 'Optimal';
-  retrievalLift: number; // Changed from string to number
-  volume: string;
+  retrievalLift: number; // No more strings!
+  volume: 'Low' | 'Medium' | 'High';
 }

@@ -11,7 +11,7 @@ export const VELOCITY_DEC_25: VelocityRecord[] = [
   },
   {
     node: "Stainless Steel",
-    topQuery: "leakproof metal bento",
+    topQuery: "stainless steel bento box metal",
     url: "/collections/metal-bento-boxes",
     status: "Establishing",
     retrievalLift: 8,
@@ -19,7 +19,7 @@ export const VELOCITY_DEC_25: VelocityRecord[] = [
   },
   {
     node: "Thermal Containers",
-    topQuery: "how to keep soup hot in lunchbox",
+    topQuery: "thermal insulated food jar soup",
     url: "/collections/thermal-containers",
     status: "Missing",
     retrievalLift: 0,

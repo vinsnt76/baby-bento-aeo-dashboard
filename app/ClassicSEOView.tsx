@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import DeltaRadar from './DeltaRadar';
 
 export default function ClassicSEOView() {
   const [data, setData] = useState<any[]>([]); // Initialize as empty array
@@ -19,6 +20,7 @@ export default function ClassicSEOView() {
           setData([]);
         } else {
           setData(json);
+          setError(null);
         }
       } catch (err) {
         setError("Network error: Could not connect to API.");
@@ -40,18 +42,35 @@ export default function ClassicSEOView() {
     </div>
   );
 
+  // 📊 Calculate Aggregates
+  const totalClicks = data.reduce((acc, row) => acc + (row.clicks || 0), 0);
+  const totalImpressions = data.reduce((acc, row) => acc + (row.impressions || 0), 0);
+  const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+
   return (
     <div className="space-y-8 animate-fadeIn">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* We will build "Live Stats" cards here next */}
         <div className="bg-zinc-900 border border-white/5 p-6 rounded-2xl">
           <p className="text-zinc-500 text-xs uppercase tracking-widest mb-2">Live Clicks (30d)</p>
-          {/* ✅ Now safe to reduce because data is guaranteed to be an array */}
           <h3 className="text-3xl font-bold text-white">
-            {data.reduce((acc, row) => acc + (row.clicks || 0), 0)}
+            {totalClicks.toLocaleString()}
+          </h3>
+        </div>
+        <div className="bg-zinc-900 border border-white/5 p-6 rounded-2xl">
+          <p className="text-zinc-500 text-xs uppercase tracking-widest mb-2">Total Impressions</p>
+          <h3 className="text-3xl font-bold text-white">
+            {totalImpressions.toLocaleString()}
+          </h3>
+        </div>
+        <div className="bg-zinc-900 border border-white/5 p-6 rounded-2xl">
+          <p className="text-zinc-500 text-xs uppercase tracking-widest mb-2">Avg. CTR</p>
+          <h3 className="text-3xl font-bold text-[#FF6F61]">
+            {avgCtr.toFixed(1)}%
           </h3>
         </div>
       </div>
+
+      <DeltaRadar />
 
       {/* 📈 Live Performance Table */}
       <div className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden">

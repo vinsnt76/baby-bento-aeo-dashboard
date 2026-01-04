@@ -45,13 +45,13 @@ export default function BabyBentoDashboard() {
             <div className="flex bg-zinc-900 p-1 rounded-lg border border-white/5">
               <button 
                 onClick={() => setActiveTab('aeo')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'aeo' ? 'bg-[#FF6F61] text-white shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'aeo' ? 'bg-[#FDDF5B] text-black shadow-lg' : 'text-zinc-400 hover:text-white'}`}
               >
                 AEO Intelligence
               </button>
               <button 
                 onClick={() => setActiveTab('classic')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'classic' ? 'bg-[#FF6F61] text-white shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'classic' ? 'bg-[#FDDF5B] text-black shadow-lg' : 'text-zinc-400 hover:text-white'}`}
               >
                 Classic SEO
               </button>
