@@ -14,12 +14,12 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsClient(true);
   }, []);
 
   useEffect(() => {
@@ -149,12 +149,10 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   };
 
   // Safety check for data and hydration
-  if (!mounted || !currentData || !previousData) {
+  if (!isClient || !currentData?.length) {
     return (
-      <div className="w-full h-[400px] flex items-center justify-center bg-slate-900/40 rounded-2xl border border-white/5">
-        <div className="text-slate-500 text-xs animate-pulse uppercase tracking-widest">
-          Stabilizing Intelligence Layer...
-        </div>
+      <div className="w-full h-[400px] bg-slate-900/40 animate-pulse rounded-2xl border border-white/5 flex items-center justify-center">
+        <span className="text-slate-500 text-[10px] uppercase tracking-widest">Initialising Radar...</span>
       </div>
     );
   }
@@ -173,7 +171,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
         </button>
         
         <ChartContainer title="Entity Formation Radar" subtitle="Semantic Density vs. Velocity">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" aspect={isMobile ? 1 : 1.6} debounce={100}>
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={mergedData}>
               <PolarGrid stroke="#334155" strokeDasharray="3 3" />
               <PolarAngleAxis 
@@ -250,7 +248,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       {/* 📈 CATEGORY OWNERSHIP BAR */}
       <div className="lg:col-span-2">
         <ChartContainer title="Category Ownership" subtitle="Branded vs. Non-Branded Market Capture">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" debounce={100}>
             <BarChart data={mergedData} layout="vertical" margin={{ left: 40 }}>
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" tick={{ fill: '#94a3b8', fontSize: 11 }} width={100} />

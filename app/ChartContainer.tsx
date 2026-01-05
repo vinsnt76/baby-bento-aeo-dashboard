@@ -23,7 +23,7 @@ export default function ChartContainer({ title, subtitle, children }: ChartConta
       {/* CRITICAL: We keep [350px] to provide a hard floor for Recharts. 
           The 'relative' class allows the ResponsiveContainer to 'stick' to these bounds.
       */}
-      <div className="w-full min-h-[350px] relative flex-1 flex items-center justify-center">
+      <div className="w-full min-h-[350px] min-w-0 relative flex-1 flex items-center justify-center">
         {children}
       </div>
     </div>
