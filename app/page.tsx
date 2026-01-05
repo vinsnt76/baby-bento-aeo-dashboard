@@ -16,7 +16,7 @@ export default function BabyBentoDashboard() {
     /* 1. GLOBAL BACKGROUND: Multi-point Radial Mesh Gradient */
     <div className="min-h-screen bg-[radial-gradient(at_top_left,#2A1A5E_0%,transparent_50%),radial-gradient(at_bottom_right,#0F4C75_0%,transparent_50%),radial-gradient(at_center,#3A2F8F_10%,transparent_80%)] bg-fixed font-sans text-[#2D334A] pb-20" style={{ backgroundColor: '#2A1A5E' }}>
       
-      <main className="max-w-7xl mx-auto p-6 md:p-12 space-y-24 animate-fadeIn">
+      <main className="max-w-7xl mx-auto p-4 sm:p-8 pb-24 sm:pb-8 space-y-24 animate-fadeIn">
         
         {/* 2. REPORT HEADER: Unicorn White */ }
         <header className="bg-[#F8F5F1] text-[#2D334A] p-8 shadow-lg rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-8">

@@ -90,16 +90,18 @@ export default function ClassicSEOView() {
         </div>
       </div>
 
-      <div className="flex bg-slate-800 p-1 rounded-lg w-fit mb-4 border border-white/5">
-        {['all', 'branded', 'non-branded'].map((type) => (
+      <div className="flex flex-wrap gap-2 bg-slate-800 p-1.5 rounded-xl border border-white/5 w-full max-w-sm sm:w-fit mb-6">
+        {['all', 'navigational', 'discovery'].map((type) => (
           <button
             key={type}
-            onClick={() => setFilter(type as any)}
-            className={`px-3 py-1 text-[10px] uppercase font-bold rounded-md transition-all ${
-              filter === type ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'
+            onClick={() => setFilter(type === 'navigational' ? 'branded' : type === 'discovery' ? 'non-branded' : 'all')}
+            className={`flex-1 sm:flex-none px-4 py-2 text-[10px] tracking-widest uppercase font-black rounded-lg transition-all ${
+              (filter === 'branded' && type === 'navigational') || (filter === 'non-branded' && type === 'discovery') || (filter === 'all' && type === 'all')
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
+                : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            {type.replace('-', ' ')}
+            {type}
           </button>
         ))}
       </div>

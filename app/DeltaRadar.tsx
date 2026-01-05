@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend 
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import ChartContainer from './ChartContainer';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 
 interface DeltaRadarProps {
@@ -13,6 +14,17 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
+  const [windowWidth, setWindowWidth] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 640;
   
   const mergedData = useMemo(() => {
     return VELOCITY_DEC_25.map(node => {
@@ -102,54 +114,98 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
     return {
       ownership: {
         title: "Ownership Signal",
+        nodeName: topOwner.name,
         text: `${topOwner.name} leads in non-branded discovery. This entity is successfully decoupling from brand-only searches.`,
         color: "blue"
       },
       momentum: {
         title: "Momentum Alert",
+        nodeName: topClimber.name,
         text: `${topClimber.name} shows the strongest velocity (Score: ${topClimber.formationScore}). Expect increased AI-overviews for this node shortly.`,
         color: "pink"
       },
       action: {
         title: "Next Best Action",
+        nodeName: weakestNode.name,
         text: `Priority: ${weakestNode.name}. Low semantic density detected. Deploy FAQ schema or supporting articles to reinforce this entity's 'Establishing' phase.`,
         color: "slate"
       }
     };
   }, [mergedData]);
 
+  const activateBrief = (nodeName: string) => {
+    const queryList = currentData
+      .filter(r => nodeName.toLowerCase().split(' ').some((t: string) => r.keys[0].toLowerCase().includes(t)))
+      .map(r => r.keys[0])
+      .join('\n');
+      
+    navigator.clipboard.writeText(`Content Brief for ${nodeName}:\n\nTarget Queries:\n${queryList}`);
+    alert(`Strategic foundation for ${nodeName} copied to clipboard!`);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-slate-900 rounded-xl border border-white/5">
       
       {/* 📊 ENTITY FORMATION RADAR */}
-      <div className="bg-slate-800/50 p-6 rounded-xl border border-white/5">
-        <h3 className="text-white font-bold mb-4 flex justify-between">
-          Entity Formation Radar
-          <span className="text-[10px] text-blue-400 uppercase tracking-widest">Semantic Health</span>
-        </h3>
-        <div className="h-75 w-full">
+      <div className={`${isZoomed ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'relative'}`}>
+        {/* Zoom Toggle Button */}
+        <button 
+          onClick={() => setIsZoomed(!isZoomed)}
+          className="absolute top-2 right-2 z-10 p-2 bg-white/5 rounded-lg sm:hidden text-white text-xs"
+        >
+          {isZoomed ? '✕ Close' : '🔍 Zoom'}
+        </button>
+        
+        <ChartContainer title="Entity Formation Radar" subtitle="Semantic Density vs. Velocity">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={mergedData}>
-              <PolarGrid stroke="#334155" />
-              <PolarAngleAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={mergedData}>
+              <PolarGrid stroke="#334155" strokeDasharray="3 3" />
+              <PolarAngleAxis 
+                dataKey="name" 
+                tick={(props: any) => {
+                  const { x, y, payload } = props;
+                  
+                  // Safety check: if Recharts hasn't calculated x/y yet, return null
+                  if (x === undefined || y === undefined) return <g />;
+
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text
+                        x={0}
+                        y={y > 150 ? 15 : -15} // Adjust vertical offset based on position
+                        textAnchor="middle"
+                        fill="#94a3b8"
+                        fontSize={isMobile ? 8 : 10}
+                        fontWeight="600"
+                        className="uppercase tracking-tighter"
+                      >
+                        {isMobile && payload.value.length > 12 
+                          ? `${payload.value.substring(0, 10)}...` 
+                          : payload.value}
+                      </text>
+                    </g>
+                  );
+                }}
+              />
               <Radar
                 name="Formation"
                 dataKey="Overlap"
                 stroke="#60a5fa"
                 fill="#60a5fa"
-                fillOpacity={0.3}
+                fillOpacity={0.25}
+                strokeWidth={2}
               />
               <Radar
                 name="Momentum"
                 dataKey="Momentum"
                 stroke="#f472b6"
                 fill="#f472b6"
-                fillOpacity={0.3}
+                fillOpacity={0.2}
+                strokeWidth={2}
               />
-              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }} />
             </RadarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartContainer>
       </div>
 
       {/* 🧠 FORMATION LEADERBOARD */}
@@ -164,8 +220,8 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className={`text-xs font-bold ${item.trend === '▲' ? 'text-green-400' : 'text-rose-400'}`}>
-                    {item.trend} {item.formationScore.toFixed(0)}
+                  <p className={`text-xs font-bold ${item.trend === '▲' ? 'text-green-400' : item.trend === '▼' ? 'text-rose-400' : 'text-slate-400'}`}>
+                    {item.trend} {item.formationScore}
                   </p>
                   <p className="text-[9px] text-slate-500 uppercase tracking-tighter">Formation Score</p>
                 </div>
@@ -176,19 +232,8 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       </div>
 
       {/* 📈 CATEGORY OWNERSHIP BAR */}
-      <div className="bg-slate-800/50 p-6 rounded-xl border border-white/5 lg:col-span-2">
-        <div className="flex justify-between items-end mb-6">
-          <div>
-            <h3 className="text-white font-bold">Category Ownership</h3>
-            <p className="text-xs text-slate-400">Branded vs. Non-Branded Market Capture</p>
-          </div>
-          <div className="text-right">
-            <span className="text-[10px] text-slate-500 uppercase">Avg. Ownership Score</span>
-            <p className="text-xl font-mono font-black text-blue-400">84%</p>
-          </div>
-        </div>
-        
-        <div className="h-75 w-full">
+      <div className="lg:col-span-2">
+        <ChartContainer title="Category Ownership" subtitle="Branded vs. Non-Branded Market Capture">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={mergedData} layout="vertical" margin={{ left: 40 }}>
               <XAxis type="number" hide />
@@ -198,31 +243,37 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }} 
               />
               <Legend iconType="circle" verticalAlign="top" align="right" />
-              <Bar dataKey="branded" stackId="a" fill="#334155" name="Branded Clicks" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="nonBranded" stackId="a" fill="#60a5fa" name="Non-Branded Clicks" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="branded" stackId="a" fill="#334155" name="Branded Clicks" />
+              <Bar dataKey="nonBranded" stackId="a" fill="#60a5fa" name="Non-Branded Clicks" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartContainer>
       </div>
 
-      {/* 🧠 STRATEGIC INSIGHT ENGINE */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 lg:col-span-2">
+      {/* 💡 STRATEGIC INSIGHTS */}
+      <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
         {Object.values(insights).map((insight: any) => (
-          <div key={insight.title} className={`p-4 rounded-lg border ${
-            insight.color === 'blue' ? 'bg-blue-500/10 border-blue-500/20' :
-            insight.color === 'pink' ? 'bg-pink-500/10 border-pink-500/20' :
-            'bg-slate-800 border-white/5'
-          }`}>
-            <h4 className={`text-xs font-black uppercase mb-1 ${
-              insight.color === 'blue' ? 'text-blue-400' :
-              insight.color === 'pink' ? 'text-pink-400' :
-              'text-slate-400'
+          <div key={insight.title} className={`bg-slate-800/50 p-6 rounded-xl border-l-4 ${
+            insight.color === 'blue' ? 'border-blue-400' : 
+            insight.color === 'pink' ? 'border-pink-400' : 'border-slate-400'
+          } border-y border-r border-white/5`}>
+            <h4 className={`text-sm font-bold mb-2 ${
+              insight.color === 'blue' ? 'text-blue-400' : 
+              insight.color === 'pink' ? 'text-pink-400' : 'text-slate-400'
             }`}>
               {insight.title}
             </h4>
-            <p className="text-slate-300 text-xs leading-relaxed">
+            <p className="text-slate-300 text-[13px] leading-relaxed">
               {insight.text}
             </p>
+            {insight.title === "Next Best Action" && (
+              <button 
+                onClick={() => activateBrief(insight.nodeName)}
+                className="mt-4 w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white transition-all active:scale-95"
+              >
+                Activate Foundation
+              </button>
+            )}
           </div>
         ))}
       </div>

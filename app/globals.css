@@ -12,3 +12,18 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Prevent the dashboard from leaking off the side of the phone */
+.recharts-wrapper {
+  margin: 0 auto;
+}
+
+/* Force Recharts to respect container boundaries */
+.recharts-surface {
+  overflow: visible;
+}
+
+/* Fix for iOS momentum scrolling on the classic table */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
