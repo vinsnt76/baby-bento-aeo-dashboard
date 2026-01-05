@@ -84,9 +84,9 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       const momentum = prevPos - currentPos; // Positive means rank improved (decreased)
       
       // 4. Formation Score (0-100)
-      const formationScore = Math.min(100, Math.max(0, 
+      const formationScore = Math.round(Math.min(100, Math.max(0, 
         (node.retrievalLift * 0.4) + ((100 - currentPos) * 0.6)
-      ));
+      )));
 
       return {
         name: node.node,
@@ -222,22 +222,26 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
         </ChartContainer>
       </div>
 
-      {/* 🧠 FORMATION LEADERBOARD */}
-      <div className="bg-slate-800/50 p-6 rounded-xl border border-white/5">
-        <h3 className="text-white font-bold mb-4">Formation Leaderboard</h3>
-        <div className="space-y-4">
+      {/* 🧠 FORMATION LEADERBOARD FIX */}
+      <div className="bg-slate-800/50 p-5 rounded-xl border border-white/5 flex flex-col h-full">
+        <h3 className="text-white text-xs font-bold mb-4 uppercase tracking-widest opacity-70">Formation Leaderboard</h3>
+        <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
           {mergedData.map(item => (
-            <div key={item.name} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-white/5">
-              <div>
-                <p className="text-sm font-medium text-white">{item.name}</p>
-                <p className="text-[10px] text-slate-500 uppercase">Target: {item.name}</p>
+            <div key={item.name} className="flex items-center justify-between p-2.5 bg-slate-900/40 rounded-lg border border-white/5 hover:bg-slate-900/80 transition-colors">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-200 truncate leading-none">{item.name}</p>
+                <p className="text-[9px] text-slate-500 uppercase tracking-tighter mt-1">Growth Node</p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className={`text-xs font-bold ${item.trend === '▲' ? 'text-green-400' : item.trend === '▼' ? 'text-rose-400' : 'text-slate-400'}`}>
-                    {item.trend} {item.formationScore}
-                  </p>
-                  <p className="text-[9px] text-slate-500 uppercase tracking-tighter">Formation Score</p>
+              
+              <div className="flex items-center gap-3 ml-4">
+                <div className="text-right whitespace-nowrap">
+                  <div className={`text-xs font-black tabular-nums flex items-center justify-end gap-1 ${
+                    item.trend === '▲' ? 'text-blue-400' : item.trend === '▼' ? 'text-pink-400' : 'text-slate-500'
+                  }`}>
+                    <span className="text-[10px]">{item.trend}</span>
+                    {item.formationScore.toFixed(0)}
+                  </div>
+                  <p className="text-[8px] text-slate-600 uppercase font-bold text-right">Score</p>
                 </div>
               </div>
             </div>
@@ -248,19 +252,34 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       {/* 📈 CATEGORY OWNERSHIP BAR */}
       <div className="lg:col-span-2">
         <ChartContainer title="Category Ownership" subtitle="Branded vs. Non-Branded Market Capture">
-          <ResponsiveContainer width="100%" height="100%" debounce={100}>
-            <BarChart data={mergedData} layout="vertical" margin={{ left: 40 }}>
-              <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" tick={{ fill: '#94a3b8', fontSize: 11 }} width={100} />
-              <Tooltip 
-                cursor={{fill: 'transparent'}}
-                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }} 
-              />
-              <Legend iconType="circle" verticalAlign="top" align="right" />
-              <Bar dataKey="branded" stackId="a" fill="#334155" name="Branded Clicks" />
-              <Bar dataKey="nonBranded" stackId="a" fill="#60a5fa" name="Non-Branded Clicks" />
-            </BarChart>
-          </ResponsiveContainer>
+          {/* Adding a min-height and aspect ratio here forces the container 
+            to exist before Recharts tries to measure it.
+          */}
+          <div className="w-full min-h-[300px] h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={mergedData} 
+                layout="vertical" 
+                margin={{ left: 30, right: 20 }}
+              >
+                <XAxis type="number" hide />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  tick={{ fill: '#94a3b8', fontSize: 10 }} 
+                  width={120} 
+                />
+                <Tooltip 
+                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} 
+                />
+                <Legend iconType="circle" verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: '20px' }} />
+                {/* Ensure these keys match your useMemo exactly: "branded" and "nonBranded" */}
+                <Bar dataKey="branded" stackId="a" fill="#334155" radius={[0, 0, 0, 0]} name="Branded Clicks" />
+                <Bar dataKey="nonBranded" stackId="a" fill="#60a5fa" radius={[0, 4, 4, 0]} name="Non-Branded Clicks" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </ChartContainer>
       </div>
 
