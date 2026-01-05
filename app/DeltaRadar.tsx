@@ -2,11 +2,12 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
-  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer
 } from 'recharts';
 import ChartContainer from './ChartContainer';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
+import { useStore } from './useStore';
+import CategoryOwnership from './CategoryOwnership';
 
 interface DeltaRadarProps {
   currentData: any[];
@@ -14,12 +15,15 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
-  const [isClient, setIsClient] = useState(false);
+  const { setMergedData, updateOwnershipMetrics } = useStore();
+  const [isReady, setIsReady] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    // Delay by 100ms to allow Tailwind grid to finish 'painting'
+    const timer = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -32,7 +36,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   const isMobile = windowWidth < 640;
   
   const mergedData = useMemo(() => {
-    return VELOCITY_DEC_25.map(node => {
+    const data = VELOCITY_DEC_25.map(node => {
       // 1. Tokenize & Fuzzy Match Logic
       const tokens = node.node.toLowerCase().split(' ');
       
@@ -103,7 +107,14 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
         rawMomentum: momentum,
       };
     });
-  }, [currentData, previousData]);
+
+    setMergedData(data);
+    const totalBranded = data.reduce((acc, curr) => acc + curr.branded, 0);
+    const totalNonBranded = data.reduce((acc, curr) => acc + curr.nonBranded, 0);
+    updateOwnershipMetrics(totalBranded, totalNonBranded);
+
+    return data;
+  }, [currentData, previousData, setMergedData, updateOwnershipMetrics]);
 
   const insights = useMemo(() => {
     if (!mergedData.length) return {};
@@ -149,12 +160,8 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   };
 
   // Safety check for data and hydration
-  if (!isClient || !currentData?.length) {
-    return (
-      <div className="w-full h-[400px] bg-slate-900/40 animate-pulse rounded-2xl border border-white/5 flex items-center justify-center">
-        <span className="text-slate-500 text-[10px] uppercase tracking-widest">Initialising Radar...</span>
-      </div>
-    );
+  if (!isReady || !currentData) {
+    return <div className="h-[400px] w-full animate-pulse bg-slate-800/20 rounded-2xl" />;
   }
 
   return (
@@ -251,36 +258,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
 
       {/* 📈 CATEGORY OWNERSHIP BAR */}
       <div className="lg:col-span-2">
-        <ChartContainer title="Category Ownership" subtitle="Branded vs. Non-Branded Market Capture">
-          {/* Adding a min-height and aspect ratio here forces the container 
-            to exist before Recharts tries to measure it.
-          */}
-          <div className="w-full min-h-[300px] h-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={mergedData} 
-                layout="vertical" 
-                margin={{ left: 30, right: 20 }}
-              >
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  tick={{ fill: '#94a3b8', fontSize: 10 }} 
-                  width={120} 
-                />
-                <Tooltip 
-                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} 
-                />
-                <Legend iconType="circle" verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: '20px' }} />
-                {/* Ensure these keys match your useMemo exactly: "branded" and "nonBranded" */}
-                <Bar dataKey="branded" stackId="a" fill="#334155" radius={[0, 0, 0, 0]} name="Branded Clicks" />
-                <Bar dataKey="nonBranded" stackId="a" fill="#60a5fa" radius={[0, 4, 4, 0]} name="Non-Branded Clicks" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartContainer>
+        <CategoryOwnership />
       </div>
 
       {/* 💡 STRATEGIC INSIGHTS */}

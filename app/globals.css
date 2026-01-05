@@ -13,9 +13,17 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Prevent the dashboard from leaking off the side of the phone */
+/* Prevent grid collapse during chart initialization */
+.chart-grid-lock {
+  display: grid;
+  grid-auto-rows: minmax(350px, auto);
+}
+
+/* Force Recharts to ignore parent padding during measurement */
 .recharts-wrapper {
-  margin: 0 auto;
+  position: absolute !important;
+  top: 0;
+  left: 0;
 }
 
 /* Force Recharts to respect container boundaries */
