@@ -10,18 +10,20 @@ interface ChartContainerProps {
 
 export default function ChartContainer({ title, subtitle, children }: ChartContainerProps) {
   return (
-    <div className="bg-slate-900/40 p-4 sm:p-6 rounded-2xl border border-white/5 overflow-hidden flex flex-col">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-sm font-bold text-white tracking-tight">{title}</h3>
-          {subtitle && <p className="text-[10px] text-slate-500 uppercase mt-0.5">{subtitle}</p>}
-        </div>
+    <div className="flex flex-col w-full bg-slate-900/40 rounded-2xl border border-white/5 p-6 shadow-xl">
+      <div className="mb-6">
+        <h3 className="text-sm font-bold text-white tracking-tight">{title}</h3>
+        {subtitle && (
+          <p className="text-[10px] text-slate-500 uppercase mt-1 tracking-widest">
+            {subtitle}
+          </p>
+        )}
       </div>
       
-      {/* FIX: Removed h-[350px]. 
-          Using aspect-square (1:1) on mobile and aspect-video (16:9) or custom ratio on desktop.
+      {/* CRITICAL: We keep [350px] to provide a hard floor for Recharts. 
+          The 'relative' class allows the ResponsiveContainer to 'stick' to these bounds.
       */}
-      <div className="w-full aspect-square sm:aspect-auto sm:h-[400px] flex items-center justify-center relative">
+      <div className="w-full min-h-[350px] relative flex-1 flex items-center justify-center">
         {children}
       </div>
     </div>

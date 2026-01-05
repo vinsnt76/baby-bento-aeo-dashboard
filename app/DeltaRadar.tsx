@@ -14,8 +14,13 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
+  const [mounted, setMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -142,6 +147,17 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
     navigator.clipboard.writeText(`Content Brief for ${nodeName}:\n\nTarget Queries:\n${queryList}`);
     alert(`Strategic foundation for ${nodeName} copied to clipboard!`);
   };
+
+  // Safety check for data and hydration
+  if (!mounted || !currentData || !previousData) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center bg-slate-900/40 rounded-2xl border border-white/5">
+        <div className="text-slate-500 text-xs animate-pulse uppercase tracking-widest">
+          Stabilizing Intelligence Layer...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-slate-900 rounded-xl border border-white/5">

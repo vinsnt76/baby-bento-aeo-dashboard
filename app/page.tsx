@@ -60,7 +60,15 @@ export default function BabyBentoDashboard() {
         </header>
 
         {/* 🚀 Dynamic Content Area */}
-        {activeTab === 'aeo' ? <AEOView /> : <ClassicSEOView />}
+        {activeTab === 'aeo' ? (
+          <div className="animate-in fade-in duration-500">
+            <AEOView />
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-500">
+            <ClassicSEOView />
+          </div>
+        )}
 
       </main>
     </div>
