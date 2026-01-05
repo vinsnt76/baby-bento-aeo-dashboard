@@ -31,22 +31,6 @@ export default function ClassicSEOView() {
     fetchGSC();
   }, []);
 
-  if (loading) return <div className="p-8 text-zinc-500 animate-pulse">Retrieving Live Signals...</div>;
-  
-  // 🚨 Display the actual error so we can fix it!
-  if (error) return (
-    <div className="p-6 border border-red-500/50 bg-red-500/10 rounded-2xl text-red-400">
-      <h4 className="font-bold mb-2">API Connection Error</h4>
-      <p className="text-sm font-mono bg-black/30 p-2 rounded">{error}</p>
-      <p className="mt-4 text-xs text-zinc-400 uppercase tracking-widest">Action: Check your .env.local keys</p>
-    </div>
-  );
-
-  // 📊 Calculate Aggregates
-  const totalClicks = data.current.reduce((acc: number, row: any) => acc + (row.clicks || 0), 0);
-  const totalImpressions = data.current.reduce((acc: number, row: any) => acc + (row.impressions || 0), 0);
-  const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-
   const filteredData = useMemo(() => {
     const brandTerms = [
       'baby bento', 
@@ -66,6 +50,22 @@ export default function ClassicSEOView() {
       return true; // 'all'
     });
   }, [data.current, filter]);
+
+  if (loading) return <div className="p-8 text-zinc-500 animate-pulse">Retrieving Live Signals...</div>;
+  
+  // 🚨 Display the actual error so we can fix it!
+  if (error) return (
+    <div className="p-6 border border-red-500/50 bg-red-500/10 rounded-2xl text-red-400">
+      <h4 className="font-bold mb-2">API Connection Error</h4>
+      <p className="text-sm font-mono bg-black/30 p-2 rounded">{error}</p>
+      <p className="mt-4 text-xs text-zinc-400 uppercase tracking-widest">Action: Check your .env.local keys</p>
+    </div>
+  );
+
+  // 📊 Calculate Aggregates
+  const totalClicks = data.current.reduce((acc: number, row: any) => acc + (row.clicks || 0), 0);
+  const totalImpressions = data.current.reduce((acc: number, row: any) => acc + (row.impressions || 0), 0);
+  const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   return (
     <div className="space-y-8 animate-fadeIn">

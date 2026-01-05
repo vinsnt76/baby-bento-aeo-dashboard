@@ -8,6 +8,7 @@ import ChartContainer from './ChartContainer';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import { useStore } from './useStore';
 import CategoryOwnership from './CategoryOwnership';
+import KPICards from './KPICards';
 
 interface DeltaRadarProps {
   currentData: any[];
@@ -15,7 +16,7 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
-  const { setMergedData, updateOwnershipMetrics } = useStore();
+  const { setMergedData, updateOwnershipMetrics, selectedNode, setSelectedNode } = useStore();
   const [isReady, setIsReady] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -108,13 +109,18 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       };
     });
 
-    setMergedData(data);
-    const totalBranded = data.reduce((acc, curr) => acc + curr.branded, 0);
-    const totalNonBranded = data.reduce((acc, curr) => acc + curr.nonBranded, 0);
-    updateOwnershipMetrics(totalBranded, totalNonBranded);
-
+    if (selectedNode) {
+      return data.filter(n => n.name === selectedNode);
+    }
     return data;
-  }, [currentData, previousData, setMergedData, updateOwnershipMetrics]);
+  }, [currentData, previousData, selectedNode]);
+
+  useEffect(() => {
+    setMergedData(mergedData);
+    const totalBranded = mergedData.reduce((acc, curr) => acc + curr.branded, 0);
+    const totalNonBranded = mergedData.reduce((acc, curr) => acc + curr.nonBranded, 0);
+    updateOwnershipMetrics(totalBranded, totalNonBranded);
+  }, [mergedData, setMergedData, updateOwnershipMetrics]);
 
   const insights = useMemo(() => {
     if (!mergedData.length) return {};
@@ -165,7 +171,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-slate-900 rounded-xl border border-white/5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-red-500/10 rounded-2xl border border-red-500/50">
       
       {/* 📊 ENTITY FORMATION RADAR */}
       <div className={`${isZoomed ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'relative'}`}>
@@ -190,7 +196,11 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
                   if (x === undefined || y === undefined) return <g />;
 
                   return (
-                    <g transform={`translate(${x},${y})`}>
+                    <g 
+                      transform={`translate(${x},${y})`} 
+                      onClick={() => setSelectedNode(payload.value)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <text
                         x={0}
                         y={y > 150 ? 15 : -15} // Adjust vertical offset based on position
@@ -234,7 +244,13 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
         <h3 className="text-white text-xs font-bold mb-4 uppercase tracking-widest opacity-70">Formation Leaderboard</h3>
         <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
           {mergedData.map(item => (
-            <div key={item.name} className="flex items-center justify-between p-2.5 bg-slate-900/40 rounded-lg border border-white/5 hover:bg-slate-900/80 transition-colors">
+            <div 
+              key={item.name} 
+              onClick={() => setSelectedNode(item.name)}
+              className={`flex items-center justify-between p-2.5 rounded-lg border border-white/5 transition-colors cursor-pointer ${
+                selectedNode === item.name ? 'bg-blue-900/40 border-blue-500/50' : 'bg-slate-900/40 hover:bg-slate-900/80'
+              }`}
+            >
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-slate-200 truncate leading-none">{item.name}</p>
                 <p className="text-[9px] text-slate-500 uppercase tracking-tighter mt-1">Growth Node</p>
@@ -258,6 +274,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
 
       {/* 📈 CATEGORY OWNERSHIP BAR */}
       <div className="lg:col-span-2">
+        <KPICards />
         <CategoryOwnership />
       </div>
 

@@ -7,9 +7,11 @@ import { BASELINE_DEC_25 } from './baseline-dec-25';
 import AEOView from './AEOView';
 import ClassicSEOView from './ClassicSEOView';
 import { useState } from 'react';
+import { useStore } from './useStore';
 
 export default function BabyBentoDashboard() {
   const [activeTab, setActiveTab] = useState<'aeo' | 'classic'>('aeo');
+  const { setSelectedNode } = useStore();
   const lastUpdated = BASELINE_DEC_25.snapshotMonth;
 
   return (
@@ -41,6 +43,12 @@ export default function BabyBentoDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setSelectedNode(null)}
+              className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-[#FF6F61] transition-colors mr-2"
+            >
+              Reset View
+            </button>
             <DownloadButton />
             <div className="flex bg-zinc-900 p-1 rounded-lg border border-white/5">
               <button 

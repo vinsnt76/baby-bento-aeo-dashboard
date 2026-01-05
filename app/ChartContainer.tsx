@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function ChartContainer({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col w-full bg-slate-900/40 rounded-2xl border border-white/5 p-6 min-h-[420px]">
+    <div className="flex flex-col w-full bg-gray-900/50 rounded-2xl border border-white/5 p-6 min-h-[420px]">
       <div className="mb-6">
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{title}</h3>
         {subtitle && (
