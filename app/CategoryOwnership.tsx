@@ -33,7 +33,7 @@ export default function CategoryOwnership() {
       subtitle="Branded vs. Non-Branded Market Capture"
     >
       <div className="w-full h-full min-h-[350px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" aspect={1.6}>
           <BarChart
             data={mergedData}
             layout="vertical"
