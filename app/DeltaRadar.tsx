@@ -16,7 +16,7 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
-  const { setMergedData, updateOwnershipMetrics, selectedNode, setSelectedNode } = useStore();
+  const { mergedData, selectedNode, setSelectedNode, processGscData } = useStore();
   const [isReady, setIsReady] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -34,96 +34,17 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Centralize data processing in the store
+  useEffect(() => {
+    if (currentData?.length && previousData) {
+      processGscData(currentData, previousData, VELOCITY_DEC_25);
+    }
+  }, [currentData, previousData, processGscData]);
+
   const isMobile = windowWidth < 640;
   
-  const mergedData = useMemo(() => {
-    const data = VELOCITY_DEC_25.map(node => {
-      // 1. Tokenize & Fuzzy Match Logic
-      const tokens = node.node.toLowerCase().split(' ');
-      
-      // BRANDED FILTER LOGIC
-      const brandTerms = [
-        'baby bento', 
-        'babybento', 
-        'baby-bento', 
-        'bb bento', 
-        'bento baby',
-        'baby bento box'
-      ];
-      
-      // Filter all queries matching this node's tokens
-      const nodeQueries = currentData?.filter(r => 
-        tokens.some((t: string) => r.keys[0].toLowerCase().includes(t))
-      ) || [];
-
-      const branded = nodeQueries.filter(r => 
-        brandTerms.some(bt => r.keys[0].toLowerCase().includes(bt))
-      );
-      
-      const nonBranded = nodeQueries.filter(r => 
-        !brandTerms.some(bt => r.keys[0].toLowerCase().includes(bt))
-      );
-
-      const brandedClicks = branded.reduce((acc, curr) => acc + curr.clicks, 0);
-      const nonBrandedClicks = nonBranded.reduce((acc, curr) => acc + curr.clicks, 0);
-      const totalClicks = brandedClicks + nonBrandedClicks || 1;
-
-      // OWNERSHIP CALCULATION
-      const nonBrandedPercent = (nonBrandedClicks / totalClicks) * 100;
-      const semanticDensity = Math.min(100, nodeQueries.length * 15);
-      const ownershipScore = (nonBrandedPercent * (semanticDensity / 100)).toFixed(0);
-
-      // Find best single match for position tracking
-      const currentMatch = nodeQueries.sort((a, b) => b.clicks - a.clicks)[0];
-      const previousMatch = previousData?.find(row => {
-        const query = row.keys[0].toLowerCase();
-        const matches = tokens.filter((t: string) => query.includes(t)).length;
-        return matches / tokens.length >= 0.5;
-      });
-
-      // Metric Normalization
-      const currentPos = currentMatch ? parseFloat(currentMatch.position) : 100;
-      const prevPos = previousMatch ? parseFloat(previousMatch.position) : 100;
-      
-      // Momentum calculation
-      const momentum = prevPos - currentPos; // Positive means rank improved (decreased)
-      
-      // 4. Formation Score (0-100)
-      const formationScore = Math.round(Math.min(100, Math.max(0, 
-        (node.retrievalLift * 0.4) + ((100 - currentPos) * 0.6)
-      )));
-
-      return {
-        name: node.node,
-        "Overlap": nodeQueries.length > 0 ? 80 : 20,
-        "Momentum": 50 + (momentum * 5), // Centered at 50
-        "Diversity": semanticDensity,
-        "AEO Lift": node.retrievalLift,
-        "Stability": previousMatch ? 90 : 30,
-        formationScore,
-        trend: momentum > 0 ? '▲' : momentum < 0 ? '▼' : '→',
-        branded: brandedClicks,
-        nonBranded: nonBrandedClicks,
-        ownershipScore,
-        rawMomentum: momentum,
-      };
-    });
-
-    if (selectedNode) {
-      return data.filter(n => n.name === selectedNode);
-    }
-    return data;
-  }, [currentData, previousData, selectedNode]);
-
-  useEffect(() => {
-    setMergedData(mergedData);
-    const totalBranded = mergedData.reduce((acc, curr) => acc + curr.branded, 0);
-    const totalNonBranded = mergedData.reduce((acc, curr) => acc + curr.nonBranded, 0);
-    updateOwnershipMetrics(totalBranded, totalNonBranded);
-  }, [mergedData, setMergedData, updateOwnershipMetrics]);
-
   const insights = useMemo(() => {
-    if (!mergedData.length) return {};
+    if (!mergedData || !mergedData.length) return {};
     
     // Sort nodes to find specific performance archetypes
     const sortedByOwnership = [...mergedData].sort((a, b) => b.nonBranded - a.nonBranded); // Using nonBranded count/share proxy
@@ -132,6 +53,8 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
 
     const topOwner = sortedByOwnership[0];
     const topClimber = sortedByMomentum[0];
+
+    if (!topOwner || !topClimber || !weakestNode) return {};
 
     return {
       ownership: {
@@ -143,7 +66,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       momentum: {
         title: "Momentum Alert",
         nodeName: topClimber.name,
-        text: `${topClimber.name} shows the strongest velocity (Score: ${topClimber.formationScore}). Expect increased AI-overviews for this node shortly.`,
+        text: `${topClimber.name} shows the strongest velocity (Score: ${topClimber.formationScore.toFixed(0)}). Expect increased AI-overviews for this node shortly.`,
         color: "pink"
       },
       action: {
@@ -167,7 +90,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
 
   // Safety check for data and hydration
   if (!isReady || !currentData) {
-    return <div className="h-[400px] w-full animate-pulse bg-slate-800/20 rounded-2xl" />;
+    return <div className="h-100 w-full animate-pulse bg-slate-800/20 rounded-2xl" />;
   }
 
   return (

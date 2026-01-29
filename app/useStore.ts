@@ -2,21 +2,37 @@
 
 import { create } from 'zustand';
 
+// This type is based on velocity-dec-25.ts to ensure type safety.
+export interface VelocityRecord {
+  node: string;
+  topQuery: string;
+  url: string;
+  status: string;
+  retrievalLift: number;
+  volume: string;
+}
+
 // It is best practice to define a more specific type for your data structures.
 // This placeholder is based on the project context.
 export interface NodeData {
-  key: string;
-  clicks: number;
-  impressions: number;
-  ctr: number;
+  name: string;
   position: number;
   // Optional derived metrics
-  nonBrandedShare?: number;
-  queryCount?: number;
-  semanticDensity?: number;
-  ownershipScore?: number;
-  rankingMomentum?: number;
-  formationScore?: number;
+  semanticDensity: number;
+  ownershipScore: number;
+  rankingMomentum: number;
+  formationScore: number;
+  // Radar-specific keys
+  Overlap: number;
+  Momentum: number;
+  'AEO Lift': number;
+  Stability: number;
+  // Data for tables and cards
+  trend: string;
+  branded: number;
+  nonBranded: number;
+  rawMomentum: number;
+  previousPosition: number;
 }
 
 interface DashboardState {
@@ -30,21 +46,12 @@ interface DashboardState {
   semanticDensity: number;
   formationScore: number;
   rankingMomentum: number;
-  setMergedData: (data: NodeData[]) => void;
   setSelectedNode: (node: string | null) => void;
-  // This action is now aligned with the mathematical model from your instructions
-  updateSemanticMetrics: (metrics: {
-    branded: number;
-    nonBranded: number;
-    queryCount: number;
-    currentPosition: number;
-    previousPosition: number;
-    retrievalLift: number; // Assuming this value is available when called
-  }) => void;
+  processGscData: (currentData: any[], previousData: any[], nodes: VelocityRecord[]) => void;
 }
 
 // Ensure "export const useStore" is explicitly named
-export const useStore = create<DashboardState>((set) => ({
+export const useStore = create<DashboardState>((set, get) => ({
   mergedData: [],
   selectedNode: null,
   brandedClicks: 0,
@@ -53,17 +60,97 @@ export const useStore = create<DashboardState>((set) => ({
   semanticDensity: 0,
   formationScore: 0,
   rankingMomentum: 0,
-  setMergedData: (data: NodeData[]) => set({ mergedData: data }),
-  setSelectedNode: (node: string | null) => set({ selectedNode: node }),
-  updateSemanticMetrics: (metrics) => {
-    const { branded, nonBranded, queryCount, currentPosition, previousPosition, retrievalLift } = metrics;
-    const totalClicks = branded + nonBranded;
-    const nonBrandedShare = totalClicks > 0 ? nonBranded / totalClicks : 0;
-    const semanticDensity = Math.min(100, queryCount * 15);
-    const ownershipScore = nonBrandedShare * semanticDensity;
-    const rankingMomentum = previousPosition - currentPosition;
-    const formationScore = Math.min(100, 0.4 * retrievalLift + 0.6 * (100 - currentPosition));
+  setSelectedNode: (node: string | null) => {
+    set({ selectedNode: node });
+    const { mergedData } = get();
 
-    set({ brandedClicks: branded, nonBrandedClicks: nonBranded, ownershipScore, semanticDensity, rankingMomentum, formationScore });
+    if (node) {
+      const nodeData = mergedData.find(d => d.name === node);
+      if (nodeData) {
+        set({
+          brandedClicks: nodeData.branded,
+          nonBrandedClicks: nodeData.nonBranded,
+          ownershipScore: nodeData.ownershipScore,
+          semanticDensity: nodeData.semanticDensity,
+          rankingMomentum: nodeData.rawMomentum,
+          formationScore: nodeData.formationScore,
+        });
+      }
+    } else {
+      // When no node is selected, show overall click totals and reset scores
+      const totalBranded = mergedData.reduce((acc, curr) => acc + curr.branded, 0);
+      const totalNonBranded = mergedData.reduce((acc, curr) => acc + curr.nonBranded, 0);
+      set({
+        brandedClicks: totalBranded,
+        nonBrandedClicks: totalNonBranded,
+        ownershipScore: 0,
+        semanticDensity: 0,
+        rankingMomentum: 0,
+        formationScore: 0,
+      });
+    }
+  },
+  processGscData: (currentData, previousData, nodes) => {
+    const brandTerms = ['baby bento', 'babybento', 'baby-bento', 'bb bento', 'bento baby', 'baby bento box'];
+
+    const calculatedData = nodes.map(node => {
+      const tokens = node.node.toLowerCase().split(' ');
+      const nodeQueries = currentData?.filter(r => tokens.some((t: string) => r.keys[0].toLowerCase().includes(t))) || [];
+
+      const brandedQueries = nodeQueries.filter(r => brandTerms.some(bt => r.keys[0].toLowerCase().includes(bt)));
+      const nonBrandedQueries = nodeQueries.filter(r => !brandTerms.some(bt => r.keys[0].toLowerCase().includes(bt)));
+
+      const brandedClicks = brandedQueries.reduce((acc, curr) => acc + curr.clicks, 0);
+      const nonBrandedClicks = nonBrandedQueries.reduce((acc, curr) => acc + curr.clicks, 0);
+      const totalClicks = brandedClicks + nonBrandedClicks;
+
+      // --- Canonical Metric Calculations ---
+      const nonBrandedShare = totalClicks > 0 ? nonBrandedClicks / totalClicks : 0;
+      const semanticDensity = Math.min(100, nodeQueries.length * 15);
+      const ownershipScore = nonBrandedShare * semanticDensity;
+
+      const currentMatch = nodeQueries.sort((a, b) => b.clicks - a.clicks)[0];
+      const previousMatch = previousData?.find(row => {
+        const query = row.keys[0].toLowerCase();
+        const matches = tokens.filter((t: string) => query.includes(t)).length;
+        return matches / tokens.length >= 0.5;
+      });
+
+      const currentPosition = currentMatch ? parseFloat(currentMatch.position) : 100;
+      const previousPosition = previousMatch ? parseFloat(previousMatch.position) : 100;
+      const rankingMomentum = previousPosition - currentPosition;
+      const formationScore = Math.round(Math.min(100, Math.max(0, (node.retrievalLift * 0.4) + ((100 - currentPosition) * 0.6))));
+
+      return {
+        name: node.node,
+        // Radar data keys
+        "Overlap": nodeQueries.length > 0 ? 80 : 20,
+        "Momentum": 50 + (rankingMomentum * 5),
+        "Diversity": semanticDensity,
+        "AEO Lift": node.retrievalLift,
+        "Stability": previousMatch ? 90 : 30,
+        // Raw metric values for other components
+        formationScore,
+        trend: rankingMomentum > 0 ? '▲' : rankingMomentum < 0 ? '▼' : '→',
+        branded: brandedClicks,
+        nonBranded: nonBrandedClicks,
+        ownershipScore,
+        rawMomentum: rankingMomentum,
+        rankingMomentum: rankingMomentum, // Add missing property to satisfy NodeData type
+        semanticDensity, // also store under the canonical name
+        position: currentPosition,
+        previousPosition: previousPosition,
+      };
+    });
+
+    set({ mergedData: calculatedData as NodeData[] });
+
+    // After setting data, initialize the aggregate click counts
+    const totalBranded = calculatedData.reduce((acc, curr) => acc + curr.branded, 0);
+    const totalNonBranded = calculatedData.reduce((acc, curr) => acc + curr.nonBranded, 0);
+    set({
+      brandedClicks: totalBranded,
+      nonBrandedClicks: totalNonBranded,
+    });
   },
 }));
