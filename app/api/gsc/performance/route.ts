@@ -23,12 +23,17 @@ export async function GET() {
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
+    const currentStartDate = formatDate(thirtyDaysAgo);
+    const currentEndDate = formatDate(now);
+    const previousStartDate = formatDate(sixtyDaysAgo);
+    const previousEndDate = formatDate(thirtyDaysAgo);
+
     // Fetch Current Period (Last 30 Days)
     const currentRes = await gsc.searchanalytics.query({
       siteUrl: process.env.GSC_SITE_URL,
       requestBody: {
-        startDate: formatDate(thirtyDaysAgo),
-        endDate: formatDate(now),
+        startDate: currentStartDate,
+        endDate: currentEndDate,
         dimensions: ['query'],
         rowLimit: 500,
       },
@@ -38,16 +43,24 @@ export async function GET() {
     const previousRes = await gsc.searchanalytics.query({
       siteUrl: process.env.GSC_SITE_URL,
       requestBody: {
-        startDate: formatDate(sixtyDaysAgo),
-        endDate: formatDate(thirtyDaysAgo),
+        startDate: previousStartDate,
+        endDate: previousEndDate,
         dimensions: ['query'],
         rowLimit: 500,
       },
     });
 
     return NextResponse.json({
-      current: currentRes.data.rows || [],
-      previous: previousRes.data.rows || [],
+      current: {
+        rows: currentRes.data.rows || [],
+        startDate: currentStartDate,
+        endDate: currentEndDate,
+      },
+      previous: {
+        rows: previousRes.data.rows || [],
+        startDate: previousStartDate,
+        endDate: previousEndDate,
+      },
       updatedAt: new Date().toISOString()
     });
   } catch (error: any) {

@@ -5,9 +5,87 @@ import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
 import { useStore } from './useStore';
 
+interface GscDataPeriod {
+  rows: any[];
+  startDate: string;
+  endDate: string;
+}
+
+function formatDateRange(start?: string, end?: string) {
+  if (!start || !end) return "";
+  return new Intl.DateTimeFormat("en-AU", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).formatRange(new Date(start), new Date(end));
+}
+
+function ArrowUpIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${className}`}>
+      <path fillRule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+function ArrowDownIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${className}`}>
+      <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+function MinusIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${className}`}>
+      <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+interface StatCardProps {
+  label: string;
+  value: string;
+  sub: string;
+  border: string;
+  current: number;
+  previous: number;
+  unit?: string;
+  isReady: boolean;
+}
+
+function StatCard({ label, value, sub, border, current, previous, unit = "", isReady }: StatCardProps) {
+  const delta = current - previous;
+  const isUp = delta > 0;
+  const isDown = delta < 0;
+
+  return (
+    <div className={`bg-[#F8F5F1] rounded-xl p-6 shadow-sm border-4 ${border} transform transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between`}>
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-gray-800 mb-3">{label}</p>
+        <h3 className="text-4xl font-black text-[#2D334A]">{value}</h3>
+      </div>
+      <div className="mt-2">
+        {isReady && (
+          <div className="flex items-center gap-1 mb-1">
+            {isUp && <ArrowUpIcon className="text-green-500" />}
+            {isDown && <ArrowDownIcon className="text-red-500" />}
+            {!isUp && !isDown && <MinusIcon className="text-gray-400" />}
+            <span className={`text-xs font-bold ${isUp ? "text-green-500" : isDown ? "text-red-500" : "text-gray-400"}`}>
+              {Math.abs(delta).toFixed(1)}{unit}
+            </span>
+          </div>
+        )}
+        <p className="text-[11px] font-medium italic text-gray-700 opacity-100">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function AEOView() {
-  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, mergedData } = useStore();
-  const [liveData, setLiveData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
+  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, reportStart, reportEnd } = useStore();
+  const [liveData, setLiveData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
 
   useEffect(() => {
     async function fetchLive() {
@@ -25,7 +103,7 @@ export default function AEOView() {
   }, []);
 
   useEffect(() => {
-    if (liveData.current.length > 0) {
+    if (liveData.current.rows.length > 0) {
       processGscData(liveData.current, liveData.previous, VELOCITY_DEC_25);
     }
   }, [liveData, processGscData]);
@@ -44,6 +122,9 @@ export default function AEOView() {
 
   return (
     <div className="space-y-24 animate-fadeIn">
+      <h2 className="text-2xl font-bold text-[#2D334A]">
+        Baseline Performance — {formatDateRange(reportStart, reportEnd)}
+      </h2>
       {/* SECTION 1: SCORECARDS */}
       <section>
         <div className="inline-block rounded-md bg-[#FF6F61] text-white px-4 py-2 font-semibold uppercase tracking-widest text-sm mb-8 shadow-lg">
@@ -52,18 +133,43 @@ export default function AEOView() {
 
         {/* 4. SCORECARDS: White backgrounds + Dark Navy Text */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { label: "Selection Efficiency", val: fmtMerchantCtr, sub: "Peak AEO CTR", border: "border-[#FCD34D]" },
-            { label: "Model Authority", val: fmtMerchantPos, sub: "Avg. Merchant Pos", border: "border-[#A7F3D0]" },
-            { label: "Retrieval Volume", val: fmtSnippetReach, sub: "Rich Impressions", border: "border-[#7DD3FC]" },
-            { label: "Knowledge Nodes", val: fmtKnowledgeNodes, sub: "Optimized Entities", border: "border-[#FCA5A5]" }
-          ].map((card, i) => (
-            <div key={i} className={`bg-[#F8F5F1] rounded-xl p-6 shadow-sm border-4 ${card.border} transform transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg`}>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-800 mb-3">{card.label}</p>
-              <h3 className="text-4xl font-black text-[#2D334A]">{card.val}</h3>
-              <p className="text-[11px] mt-2 font-medium italic text-gray-700 opacity-100">{card.sub}</p>
-            </div>
-          ))}
+          <StatCard
+            label="Selection Efficiency"
+            value={fmtMerchantCtr}
+            sub="Peak AEO CTR"
+            border="border-[#FCD34D]"
+            current={selectionEfficiency * 100}
+            previous={prevSelectionEfficiency * 100}
+            unit="%"
+            isReady={isStoreReady}
+          />
+          <StatCard
+            label="Model Authority"
+            value={fmtMerchantPos}
+            sub="Avg. Merchant Pos"
+            border="border-[#A7F3D0]"
+            current={modelAuthority}
+            previous={prevModelAuthority}
+            isReady={isStoreReady}
+          />
+          <StatCard
+            label="Retrieval Volume"
+            value={fmtSnippetReach}
+            sub="Rich Impressions"
+            border="border-[#7DD3FC]"
+            current={retrievalVolume}
+            previous={prevRetrievalVolume}
+            isReady={isStoreReady}
+          />
+          <StatCard
+            label="Knowledge Nodes"
+            value={fmtKnowledgeNodes}
+            sub="Optimized Entities"
+            border="border-[#FCA5A5]"
+            current={knowledgeNodes}
+            previous={prevKnowledgeNodes}
+            isReady={isStoreReady}
+          />
         </div>
       </section>
 
@@ -183,7 +289,7 @@ export default function AEOView() {
       </section>
 
       {/* DELTA ENGINE: Retrieval Gap Analysis */}
-      <DeltaRadar currentData={liveData.current} previousData={liveData.previous} />
+      <DeltaRadar currentData={liveData.current.rows} previousData={liveData.previous.rows} />
     </div>
   );
 }

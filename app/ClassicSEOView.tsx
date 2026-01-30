@@ -4,8 +4,14 @@ import { useEffect, useState, useMemo } from 'react';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import { useStore } from './useStore';
 
+interface GscDataPeriod {
+  rows: any[];
+  startDate: string;
+  endDate: string;
+}
+
 export default function ClassicSEOView() {
-  const [data, setData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
+  const [data, setData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
   const [filter, setFilter] = useState<'all' | 'branded' | 'non-branded'>('all');
   const [error, setError] = useState<string | null>(null); // Add error state
   const [loading, setLoading] = useState(true);
@@ -18,9 +24,9 @@ export default function ClassicSEOView() {
         const json = await res.json();
         
         // 🛡️ CHECK: If the API returned an error object instead of an array
-        if (json.error || !json.current) {
+        if (json.error || !json.current.rows) {
           setError(json.error || "Failed to retrieve valid data format.");
-          setData({ current: [], previous: [] });
+          setData({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
         } else {
           setData(json);
           setError(null);
@@ -35,7 +41,7 @@ export default function ClassicSEOView() {
   }, []);
 
   useEffect(() => {
-    if (data.current.length > 0) {
+    if (data.current.rows.length > 0) {
       processGscData(data.current, data.previous, VELOCITY_DEC_25);
     }
   }, [data, processGscData]);
@@ -50,7 +56,7 @@ export default function ClassicSEOView() {
       'baby bento box'
     ];
 
-    return data.current.filter((row: any) => {
+    return data.current.rows.filter((row: any) => {
       const query = row.keys[0].toLowerCase();
       const isBranded = brandTerms.some(term => query.includes(term));
       
@@ -58,7 +64,7 @@ export default function ClassicSEOView() {
       if (filter === 'non-branded') return !isBranded;
       return true; // 'all'
     });
-  }, [data.current, filter]);
+  }, [data.current.rows, filter]);
 
   if (loading) return <div className="p-8 text-zinc-500 animate-pulse">Retrieving Live Signals...</div>;
   
@@ -72,8 +78,8 @@ export default function ClassicSEOView() {
   );
 
   // 📊 Calculate Aggregates
-  const totalClicks = data.current.reduce((acc: number, row: any) => acc + (row.clicks || 0), 0);
-  const totalImpressions = data.current.reduce((acc: number, row: any) => acc + (row.impressions || 0), 0);
+  const totalClicks = data.current.rows.reduce((acc: number, row: any) => acc + (row.clicks || 0), 0);
+  const totalImpressions = data.current.rows.reduce((acc: number, row: any) => acc + (row.impressions || 0), 0);
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   return (

@@ -38,6 +38,12 @@ export interface NodeData {
   ctr: number;
 }
 
+interface GscDataPeriod {
+  rows: any[];
+  startDate: string;
+  endDate: string;
+}
+
 interface DashboardState {
   mergedData: NodeData[];
   selectedNode: string | null;
@@ -53,8 +59,14 @@ interface DashboardState {
   modelAuthority: number;
   retrievalVolume: number;
   knowledgeNodes: number;
+  prevSelectionEfficiency: number;
+  prevModelAuthority: number;
+  prevRetrievalVolume: number;
+  prevKnowledgeNodes: number;
+  reportStart: string;
+  reportEnd: string;
   setSelectedNode: (node: string | null) => void;
-  processGscData: (currentData: any[], previousData: any[], nodes: VelocityRecord[]) => void;
+  processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod, nodes: VelocityRecord[]) => void;
 }
 
 // Ensure "export const useStore" is explicitly named
@@ -71,6 +83,12 @@ export const useStore = create<DashboardState>((set, get) => ({
   modelAuthority: 0,
   retrievalVolume: 0,
   knowledgeNodes: 0,
+  prevSelectionEfficiency: 0,
+  prevModelAuthority: 0,
+  prevRetrievalVolume: 0,
+  prevKnowledgeNodes: 0,
+  reportStart: '',
+  reportEnd: '',
   setSelectedNode: (node: string | null) => {
     set({ selectedNode: node });
     const { mergedData } = get();
@@ -106,7 +124,7 @@ export const useStore = create<DashboardState>((set, get) => ({
 
     const calculatedData = nodes.map(node => {
       const tokens = node.node.toLowerCase().split(' ');
-      const nodeQueries = currentData?.filter(r => tokens.some((t: string) => r.keys[0].toLowerCase().includes(t))) || [];
+      const nodeQueries = currentData.rows?.filter(r => tokens.some((t: string) => r.keys[0].toLowerCase().includes(t))) || [];
 
       const brandedQueries = nodeQueries.filter(r => brandTerms.some(bt => r.keys[0].toLowerCase().includes(bt)));
       const nonBrandedQueries = nodeQueries.filter(r => !brandTerms.some(bt => r.keys[0].toLowerCase().includes(bt)));
@@ -123,7 +141,7 @@ export const useStore = create<DashboardState>((set, get) => ({
       const ownershipScore = nonBrandedShare * semanticDensity;
 
       const currentMatch = nodeQueries.sort((a, b) => b.clicks - a.clicks)[0];
-      const previousMatch = previousData?.find(row => {
+      const previousMatch = previousData.rows?.find(row => {
         const query = row.keys[0].toLowerCase();
         const matches = tokens.filter((t: string) => query.includes(t)).length;
         return matches / tokens.length >= 0.5;
@@ -168,14 +186,46 @@ export const useStore = create<DashboardState>((set, get) => ({
     const retrievalVolume = calculatedData.reduce((acc, curr) => acc + curr.impressions, 0);
     const knowledgeNodes = calculatedData.filter(d => d.semanticDensity > 20).length;
 
-    set({ mergedData: calculatedData as NodeData[], selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes });
+    // --- Previous Period KPI Calculations ---
+    const prevCalculatedData = nodes.map(node => {
+      const tokens = node.node.toLowerCase().split(' ');
+      const nodeQueries = previousData.rows?.filter(r => tokens.some((t: string) => r.keys[0].toLowerCase().includes(t))) || [];
+
+      const totalClicks = nodeQueries.reduce((acc, curr) => acc + curr.clicks, 0);
+      const totalImpressions = nodeQueries.reduce((acc, curr) => acc + (curr.impressions || 0), 0);
+      const ctr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
+      const semanticDensity = Math.min(100, nodeQueries.length * 15);
+
+      const currentMatch = nodeQueries.sort((a, b) => b.clicks - a.clicks)[0];
+      const position = currentMatch ? parseFloat(currentMatch.position) : 100;
+
+      return {
+        ctr,
+        semanticDensity,
+        position,
+        impressions: totalImpressions
+      };
+    });
+
+    const prevSelectionEfficiency = prevCalculatedData.length > 0 ? Math.max(...prevCalculatedData.map(d => d.ctr)) : 0;
+    const prevActiveNodes = prevCalculatedData.filter(d => d.semanticDensity > 0);
+    const prevModelAuthority = prevActiveNodes.length > 0
+      ? prevActiveNodes.reduce((acc, curr) => acc + curr.position, 0) / prevActiveNodes.length
+      : 0;
+    const prevRetrievalVolume = prevCalculatedData.reduce((acc, curr) => acc + curr.impressions, 0);
+    const prevKnowledgeNodes = prevCalculatedData.filter(d => d.semanticDensity > 20).length;
 
     // After setting data, initialize the aggregate click counts
     const totalBranded = calculatedData.reduce((acc, curr) => acc + curr.branded, 0);
     const totalNonBranded = calculatedData.reduce((acc, curr) => acc + curr.nonBranded, 0);
     set({
+      mergedData: calculatedData as NodeData[],
+      selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes,
+      prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes,
       brandedClicks: totalBranded,
       nonBrandedClicks: totalNonBranded,
+      reportStart: currentData.startDate,
+      reportEnd: currentData.endDate,
     });
   },
 }));
