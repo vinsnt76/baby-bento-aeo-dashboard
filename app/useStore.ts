@@ -65,6 +65,9 @@ interface DashboardState {
   prevKnowledgeNodes: number;
   reportStart: string;
   reportEnd: string;
+  selectedStartDate: string;
+  selectedEndDate: string;
+  setReportPeriod: (startDate: string, endDate: string) => void;
   setSelectedNode: (node: string | null) => void;
   processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod, nodes: VelocityRecord[]) => void;
 }
@@ -89,6 +92,9 @@ export const useStore = create<DashboardState>((set, get) => ({
   prevKnowledgeNodes: 0,
   reportStart: '',
   reportEnd: '',
+  selectedStartDate: '',
+  selectedEndDate: '',
+  setReportPeriod: (startDate, endDate) => set({ selectedStartDate: startDate, selectedEndDate: endDate }),
   setSelectedNode: (node: string | null) => {
     set({ selectedNode: node });
     const { mergedData } = get();
@@ -226,6 +232,8 @@ export const useStore = create<DashboardState>((set, get) => ({
       nonBrandedClicks: totalNonBranded,
       reportStart: currentData.startDate,
       reportEnd: currentData.endDate,
+      selectedStartDate: currentData.startDate,
+      selectedEndDate: currentData.endDate,
     });
   },
 }));

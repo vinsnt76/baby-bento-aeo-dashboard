@@ -1,9 +1,9 @@
 import { google } from 'googleapis';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
 export const revalidate = 86400; // 24-hour cache
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const auth = new google.auth.GoogleAuth({
       credentials: {
@@ -16,17 +16,41 @@ export async function GET() {
     // Using searchconsole v1 as it is the modern replacement for webmasters v3
     const gsc = google.searchconsole({ version: 'v1', auth });
 
-    // 📅 Date Logic for Momentum
-    const now = new Date();
-    const thirtyDaysAgo = new Date(new Date().setDate(now.getDate() - 30));
-    const sixtyDaysAgo = new Date(new Date().setDate(now.getDate() - 60));
+    // 📅 Date Logic
+    const { searchParams } = new URL(request.url);
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    
+    let currentStartDate, currentEndDate, previousStartDate, previousEndDate;
 
-    const currentStartDate = formatDate(thirtyDaysAgo);
-    const currentEndDate = formatDate(now);
-    const previousStartDate = formatDate(sixtyDaysAgo);
-    const previousEndDate = formatDate(thirtyDaysAgo);
+    if (startParam && endParam) {
+      // Use provided dates
+      currentStartDate = startParam;
+      currentEndDate = endParam;
+      
+      // Calculate previous period (same duration, ending 1 day before start)
+      const start = new Date(startParam);
+      const end = new Date(endParam);
+      const durationTime = end.getTime() - start.getTime();
+      
+      const prevEnd = new Date(start.getTime() - 86400000); // 1 day before start
+      const prevStart = new Date(prevEnd.getTime() - durationTime);
+      
+      previousEndDate = formatDate(prevEnd);
+      previousStartDate = formatDate(prevStart);
+    } else {
+      // Default: Last 30 days vs previous 30 days
+      const now = new Date();
+      const thirtyDaysAgo = new Date(new Date().setDate(now.getDate() - 30));
+      const sixtyDaysAgo = new Date(new Date().setDate(now.getDate() - 60));
+
+      currentStartDate = formatDate(thirtyDaysAgo);
+      currentEndDate = formatDate(now);
+      previousStartDate = formatDate(sixtyDaysAgo);
+      previousEndDate = formatDate(thirtyDaysAgo);
+    }
 
     // Fetch Current Period (Last 30 Days)
     const currentRes = await gsc.searchanalytics.query({

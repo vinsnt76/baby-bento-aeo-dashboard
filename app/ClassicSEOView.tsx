@@ -10,17 +10,30 @@ interface GscDataPeriod {
   endDate: string;
 }
 
+function formatDateRange(start?: string, end?: string) {
+  if (!start || !end) return "";
+  return new Intl.DateTimeFormat("en-AU", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).formatRange(new Date(start), new Date(end));
+}
+
 export default function ClassicSEOView() {
   const [data, setData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
   const [filter, setFilter] = useState<'all' | 'branded' | 'non-branded'>('all');
   const [error, setError] = useState<string | null>(null); // Add error state
   const [loading, setLoading] = useState(true);
-  const { processGscData } = useStore();
+  const { processGscData, reportStart, reportEnd, selectedStartDate, selectedEndDate, setReportPeriod } = useStore();
 
   useEffect(() => {
     async function fetchGSC() {
       try {
-        const res = await fetch('/api/gsc/performance');
+        let url = '/api/gsc/performance';
+        if (selectedStartDate && selectedEndDate) {
+          url += `?start=${selectedStartDate}&end=${selectedEndDate}`;
+        }
+        const res = await fetch(url);
         const json = await res.json();
         
         // 🛡️ CHECK: If the API returned an error object instead of an array
@@ -38,7 +51,7 @@ export default function ClassicSEOView() {
       }
     }
     fetchGSC();
-  }, []);
+  }, [selectedStartDate, selectedEndDate]);
 
   useEffect(() => {
     if (data.current.rows.length > 0) {
@@ -84,6 +97,26 @@ export default function ClassicSEOView() {
 
   return (
     <div className="space-y-8 animate-fadeIn">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-xl font-bold">
+          Baseline Performance — {formatDateRange(selectedStartDate, selectedEndDate)}
+        </h1>
+        <div className="flex items-center gap-2 bg-zinc-900 p-2 rounded-xl border border-white/5">
+          <input 
+            type="date" 
+            className="text-xs font-medium text-zinc-400 bg-transparent outline-none cursor-pointer"
+            value={selectedStartDate}
+            onChange={(e) => setReportPeriod(e.target.value, selectedEndDate)}
+          />
+          <span className="text-zinc-600">→</span>
+          <input 
+            type="date" 
+            className="text-xs font-medium text-zinc-400 bg-transparent outline-none cursor-pointer"
+            value={selectedEndDate}
+            onChange={(e) => setReportPeriod(selectedStartDate, e.target.value)}
+          />
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-zinc-900 border border-white/5 p-6 rounded-2xl">
           <p className="text-zinc-500 text-xs uppercase tracking-widest mb-2">Live Clicks (30d)</p>

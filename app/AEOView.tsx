@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
 import { useStore } from './useStore';
+import DateRangePicker from './DateRangePicker';
 
 interface GscDataPeriod {
   rows: any[];
@@ -84,13 +85,17 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
 }
 
 export default function AEOView() {
-  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, reportStart, reportEnd } = useStore();
+  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, reportStart, reportEnd, selectedStartDate, selectedEndDate, setReportPeriod } = useStore();
   const [liveData, setLiveData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
 
   useEffect(() => {
     async function fetchLive() {
       try {
-        const res = await fetch('/api/gsc/performance');
+        let url = '/api/gsc/performance';
+        if (selectedStartDate && selectedEndDate) {
+          url += `?start=${selectedStartDate}&end=${selectedEndDate}`;
+        }
+        const res = await fetch(url);
         const json = await res.json();
         if (json.current) {
           setLiveData(json);
@@ -100,7 +105,7 @@ export default function AEOView() {
       }
     }
     fetchLive();
-  }, []);
+  }, [selectedStartDate, selectedEndDate]);
 
   useEffect(() => {
     if (liveData.current.rows.length > 0) {
@@ -122,9 +127,20 @@ export default function AEOView() {
 
   return (
     <div className="space-y-24 animate-fadeIn">
-      <h2 className="text-2xl font-bold text-[#2D334A]">
-        Baseline Performance — {formatDateRange(reportStart, reportEnd)}
-      </h2>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-xl font-bold">
+          Baseline Performance — {formatDateRange(selectedStartDate, selectedEndDate)}
+        </h1>
+        <DateRangePicker
+          start={selectedStartDate}
+          end={selectedEndDate}
+          onChange={(range) => {
+            if (range?.start && range?.end) {
+              setReportPeriod(range.start, range.end);
+            }
+          }}
+        />
+      </div>
       {/* SECTION 1: SCORECARDS */}
       <section>
         <div className="inline-block rounded-md bg-[#FF6F61] text-white px-4 py-2 font-semibold uppercase tracking-widest text-sm mb-8 shadow-lg">
