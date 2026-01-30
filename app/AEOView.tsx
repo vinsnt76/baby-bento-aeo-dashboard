@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BASELINE_DEC_25 } from './baseline-dec-25';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
+import { useStore } from './useStore';
 
 export default function AEOView() {
+  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, mergedData } = useStore();
   const [liveData, setLiveData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
 
   useEffect(() => {
@@ -23,15 +24,23 @@ export default function AEOView() {
     fetchLive();
   }, []);
 
-  const aeoData = BASELINE_DEC_25.data;
-  
-  const snippetReach = aeoData.find(d => d.appearance === "Product snippets")?.current.impressions || 0;
-  const merchantPos = aeoData.find(d => d.appearance === "Merchant listings")?.current.position || 0;
-  const merchantCtr = aeoData.find(d => d.appearance === "Merchant listings")?.current.ctr || 0;
+  useEffect(() => {
+    if (liveData.current.length > 0) {
+      processGscData(liveData.current, liveData.previous, VELOCITY_DEC_25);
+    }
+  }, [liveData, processGscData]);
 
-  const fmtSnippetReach = (snippetReach / 1000).toFixed(1) + 'k';
-  const fmtMerchantPos = merchantPos.toFixed(2);
-  const fmtMerchantCtr = (merchantCtr * 100).toFixed(1) + '%';
+  const isStoreReady = mergedData.length > 0;
+
+  const fmtSnippetReach = isStoreReady ? retrievalVolume.toLocaleString() : "—";
+  const fmtMerchantPos = isStoreReady ? modelAuthority.toFixed(2) : "—";
+  const fmtMerchantCtr = isStoreReady ? (selectionEfficiency * 100).toFixed(1) + '%' : "—";
+  const fmtKnowledgeNodes = isStoreReady ? knowledgeNodes.toString().padStart(2, '0') : "—";
+
+  const totalNodes = mergedData.length || 1;
+  const buoyantPct = Math.round((mergedData.filter(n => n.status === 'Optimal').length / totalNodes) * 100);
+  const establishingPct = Math.round((mergedData.filter(n => ['Establishing', 'Optimizing'].includes(n.status)).length / totalNodes) * 100);
+  const missingPct = Math.round((mergedData.filter(n => n.status === 'Missing').length / totalNodes) * 100);
 
   return (
     <div className="space-y-24 animate-fadeIn">
@@ -47,7 +56,7 @@ export default function AEOView() {
             { label: "Selection Efficiency", val: fmtMerchantCtr, sub: "Peak AEO CTR", border: "border-[#FCD34D]" },
             { label: "Model Authority", val: fmtMerchantPos, sub: "Avg. Merchant Pos", border: "border-[#A7F3D0]" },
             { label: "Retrieval Volume", val: fmtSnippetReach, sub: "Rich Impressions", border: "border-[#7DD3FC]" },
-            { label: "Knowledge Nodes", val: "08", sub: "Optimized Entities", border: "border-[#FCA5A5]" }
+            { label: "Knowledge Nodes", val: fmtKnowledgeNodes, sub: "Optimized Entities", border: "border-[#FCA5A5]" }
           ].map((card, i) => (
             <div key={i} className={`bg-[#F8F5F1] rounded-xl p-6 shadow-sm border-4 ${card.border} transform transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg`}>
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-800 mb-3">{card.label}</p>
@@ -70,23 +79,23 @@ export default function AEOView() {
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter">
                   <span className="text-green-400">Buoyant (Retrieved)</span>
-                  <span>25%</span>
+                  <span>{buoyantPct}%</span>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-green-400 h-full w-[25%]"></div></div>
+                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-green-400 h-full transition-all duration-1000" style={{ width: `${buoyantPct}%` }}></div></div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter">
                   <span className="text-blue-400">Establishing</span>
-                  <span>25%</span>
+                  <span>{establishingPct}%</span>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-blue-400 h-full w-[25%]"></div></div>
+                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-blue-400 h-full transition-all duration-1000" style={{ width: `${establishingPct}%` }}></div></div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter">
                   <span className="text-red-400">Missing (Technical Debt)</span>
-                  <span>50%</span>
+                  <span>{missingPct}%</span>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-red-400 h-full w-[50%]"></div></div>
+                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-red-400 h-full transition-all duration-1000" style={{ width: `${missingPct}%` }}></div></div>
               </div>
             </div>
           </div>

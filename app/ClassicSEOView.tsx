@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { VELOCITY_DEC_25 } from './velocity-dec-25';
+import { useStore } from './useStore';
 
 export default function ClassicSEOView() {
   const [data, setData] = useState<{ current: any[], previous: any[] }>({ current: [], previous: [] });
   const [filter, setFilter] = useState<'all' | 'branded' | 'non-branded'>('all');
   const [error, setError] = useState<string | null>(null); // Add error state
   const [loading, setLoading] = useState(true);
+  const { processGscData } = useStore();
 
   useEffect(() => {
     async function fetchGSC() {
@@ -30,6 +33,12 @@ export default function ClassicSEOView() {
     }
     fetchGSC();
   }, []);
+
+  useEffect(() => {
+    if (data.current.length > 0) {
+      processGscData(data.current, data.previous, VELOCITY_DEC_25);
+    }
+  }, [data, processGscData]);
 
   const filteredData = useMemo(() => {
     const brandTerms = [

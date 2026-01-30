@@ -5,7 +5,6 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer
 } from 'recharts';
 import ChartContainer from './ChartContainer';
-import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import { useStore } from './useStore';
 import CategoryOwnership from './CategoryOwnership';
 import KPICards from './KPICards';
@@ -16,7 +15,7 @@ interface DeltaRadarProps {
 }
 
 export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
-  const { mergedData, selectedNode, setSelectedNode, processGscData } = useStore();
+  const { mergedData, selectedNode, setSelectedNode } = useStore();
   const [isReady, setIsReady] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -33,13 +32,6 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Centralize data processing in the store
-  useEffect(() => {
-    if (currentData?.length && previousData) {
-      processGscData(currentData, previousData, VELOCITY_DEC_25);
-    }
-  }, [currentData, previousData, processGscData]);
 
   const isMobile = windowWidth < 640;
   

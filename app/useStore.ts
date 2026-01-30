@@ -17,6 +17,7 @@ export interface VelocityRecord {
 export interface NodeData {
   name: string;
   position: number;
+  status: string;
   // Optional derived metrics
   semanticDensity: number;
   ownershipScore: number;
@@ -33,6 +34,8 @@ export interface NodeData {
   nonBranded: number;
   rawMomentum: number;
   previousPosition: number;
+  impressions: number;
+  ctr: number;
 }
 
 interface DashboardState {
@@ -46,6 +49,10 @@ interface DashboardState {
   semanticDensity: number;
   formationScore: number;
   rankingMomentum: number;
+  selectionEfficiency: number;
+  modelAuthority: number;
+  retrievalVolume: number;
+  knowledgeNodes: number;
   setSelectedNode: (node: string | null) => void;
   processGscData: (currentData: any[], previousData: any[], nodes: VelocityRecord[]) => void;
 }
@@ -60,6 +67,10 @@ export const useStore = create<DashboardState>((set, get) => ({
   semanticDensity: 0,
   formationScore: 0,
   rankingMomentum: 0,
+  selectionEfficiency: 0,
+  modelAuthority: 0,
+  retrievalVolume: 0,
+  knowledgeNodes: 0,
   setSelectedNode: (node: string | null) => {
     set({ selectedNode: node });
     const { mergedData } = get();
@@ -103,6 +114,8 @@ export const useStore = create<DashboardState>((set, get) => ({
       const brandedClicks = brandedQueries.reduce((acc, curr) => acc + curr.clicks, 0);
       const nonBrandedClicks = nonBrandedQueries.reduce((acc, curr) => acc + curr.clicks, 0);
       const totalClicks = brandedClicks + nonBrandedClicks;
+      const totalImpressions = nodeQueries.reduce((acc, curr) => acc + (curr.impressions || 0), 0);
+      const ctr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
 
       // --- Canonical Metric Calculations ---
       const nonBrandedShare = totalClicks > 0 ? nonBrandedClicks / totalClicks : 0;
@@ -123,6 +136,7 @@ export const useStore = create<DashboardState>((set, get) => ({
 
       return {
         name: node.node,
+        status: node.status,
         // Radar data keys
         "Overlap": nodeQueries.length > 0 ? 80 : 20,
         "Momentum": 50 + (rankingMomentum * 5),
@@ -140,10 +154,21 @@ export const useStore = create<DashboardState>((set, get) => ({
         semanticDensity, // also store under the canonical name
         position: currentPosition,
         previousPosition: previousPosition,
+        impressions: totalImpressions,
+        ctr,
       };
     });
 
-    set({ mergedData: calculatedData as NodeData[] });
+    // --- Global KPI Calculations ---
+    const selectionEfficiency = calculatedData.length > 0 ? Math.max(...calculatedData.map(d => d.ctr)) : 0;
+    const activeNodes = calculatedData.filter(d => d.semanticDensity > 0);
+    const modelAuthority = activeNodes.length > 0 
+      ? activeNodes.reduce((acc, curr) => acc + curr.position, 0) / activeNodes.length 
+      : 0;
+    const retrievalVolume = calculatedData.reduce((acc, curr) => acc + curr.impressions, 0);
+    const knowledgeNodes = calculatedData.filter(d => d.semanticDensity > 20).length;
+
+    set({ mergedData: calculatedData as NodeData[], selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes });
 
     // After setting data, initialize the aggregate click counts
     const totalBranded = calculatedData.reduce((acc, curr) => acc + curr.branded, 0);
