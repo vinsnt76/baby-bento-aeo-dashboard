@@ -86,10 +86,10 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-red-500/10 rounded-2xl border border-red-500/50">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-red-500/10 rounded-2xl border border-red-500/50 min-h-[350px] min-w-0">
       
       {/* 📊 ENTITY FORMATION RADAR */}
-      <div className={`${isZoomed ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'relative'}`}>
+      <div className={`${isZoomed ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'relative'} min-w-0`}>
         {/* Zoom Toggle Button */}
         <button 
           onClick={() => setIsZoomed(!isZoomed)}
@@ -99,7 +99,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
         </button>
         
         <ChartContainer title="Entity Formation Radar" subtitle="Semantic Density vs. Velocity">
-          <ResponsiveContainer width="100%" aspect={isMobile ? 1 : 1.6} debounce={100}>
+          <ResponsiveContainer width="100%" height="100%" debounce={100}>
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={mergedData}>
               <PolarGrid stroke="#334155" strokeDasharray="3 3" />
               <PolarAngleAxis 
@@ -155,7 +155,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       </div>
 
       {/* 🧠 FORMATION LEADERBOARD FIX */}
-      <div className="bg-slate-800/50 p-5 rounded-xl border border-white/5 flex flex-col h-full">
+      <div className="bg-slate-800/50 p-5 rounded-xl border border-white/5 flex flex-col h-full min-w-0">
         <h3 className="text-white text-xs font-bold mb-4 uppercase tracking-widest opacity-70">Formation Leaderboard</h3>
         <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
           {mergedData.map(item => (
@@ -188,7 +188,7 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
       </div>
 
       {/* 📈 CATEGORY OWNERSHIP BAR */}
-      <div className="lg:col-span-2">
+      <div className="lg:col-span-2 min-w-0">
         <KPICards />
         <CategoryOwnership />
       </div>

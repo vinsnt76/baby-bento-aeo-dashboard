@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
 import { useStore } from './useStore';
-import DateRangePicker from './DateRangePicker';
 
 interface GscDataPeriod {
   rows: any[];
@@ -12,18 +11,9 @@ interface GscDataPeriod {
   endDate: string;
 }
 
-function formatDateRange(start?: string, end?: string) {
-  if (!start || !end) return "";
-  return new Intl.DateTimeFormat("en-AU", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).formatRange(new Date(start), new Date(end));
-}
-
 function ArrowUpIcon({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${className}`}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path fillRule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clipRule="evenodd" />
     </svg>
   );
@@ -31,7 +21,7 @@ function ArrowUpIcon({ className }: { className?: string }) {
 
 function ArrowDownIcon({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${className}`}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clipRule="evenodd" />
     </svg>
   );
@@ -39,7 +29,7 @@ function ArrowDownIcon({ className }: { className?: string }) {
 
 function MinusIcon({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${className}`}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10z" clipRule="evenodd" />
     </svg>
   );
@@ -62,30 +52,36 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
   const isDown = delta < 0;
 
   return (
-    <div className={`bg-[#F8F5F1] rounded-xl p-6 shadow-sm border-4 ${border} transform transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between`}>
+    <div className={`bg-[#F8F5F1] rounded-2xl p-6 shadow-sm border-4 ${border} transform transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between min-h-35`}>
+      {/* Top Section: Label and Large Value */}
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-gray-800 mb-3">{label}</p>
-        <h3 className="text-4xl font-black text-[#2D334A]">{value}</h3>
+        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-600 mb-1">{label}</p>
+        <h3 className="text-5xl font-black text-[#2D334A] tracking-tighter leading-none">{value}</h3>
       </div>
-      <div className="mt-2">
+      
+      {/* Footer Section: Description bottom left, Delta bottom right */}
+      <div className="flex items-end justify-between mt-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 leading-none">
+          {sub}
+        </p>
         {isReady && (
-          <div className="flex items-center gap-1 mb-1">
-            {isUp && <ArrowUpIcon className="text-green-500" />}
-            {isDown && <ArrowDownIcon className="text-red-500" />}
-            {!isUp && !isDown && <MinusIcon className="text-gray-400" />}
-            <span className={`text-xs font-bold ${isUp ? "text-green-500" : isDown ? "text-red-500" : "text-gray-400"}`}>
+          <div className="flex items-center gap-1">
+            {isUp && <ArrowUpIcon className="w-5 h-5 text-green-500 stroke-3" />}
+            {isDown && <ArrowDownIcon className="w-5 h-5 text-red-500 stroke-3" />}
+            {!isUp && !isDown && <MinusIcon className="w-5 h-5 text-gray-300" />}
+            
+            <span className={`text-lg font-black leading-none ${isUp ? "text-green-500" : isDown ? "text-red-500" : "text-gray-400"}`}>
               {Math.abs(delta).toFixed(1)}{unit}
             </span>
           </div>
         )}
-        <p className="text-[11px] font-medium italic text-gray-700 opacity-100">{sub}</p>
       </div>
     </div>
   );
 }
 
 export default function AEOView() {
-  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, reportStart, reportEnd, selectedStartDate, selectedEndDate, setReportPeriod } = useStore();
+  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate } = useStore();
   const [liveData, setLiveData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
 
   useEffect(() => {
@@ -127,20 +123,6 @@ export default function AEOView() {
 
   return (
     <div className="space-y-24 animate-fadeIn">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-xl font-bold">
-          Baseline Performance — {formatDateRange(selectedStartDate, selectedEndDate)}
-        </h1>
-        <DateRangePicker
-          start={selectedStartDate}
-          end={selectedEndDate}
-          onChange={(range) => {
-            if (range?.start && range?.end) {
-              setReportPeriod(range.start, range.end);
-            }
-          }}
-        />
-      </div>
       {/* SECTION 1: SCORECARDS */}
       <section>
         <div className="inline-block rounded-md bg-[#FF6F61] text-white px-4 py-2 font-semibold uppercase tracking-widest text-sm mb-8 shadow-lg">
@@ -224,7 +206,7 @@ export default function AEOView() {
           <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 backdrop-blur-sm">
             <h5 className="text-xs font-bold text-yellow-100 uppercase mb-3 tracking-widest">Key Insights & Recommendations</h5>
             <p className="text-lg font-medium text-gray-200 leading-snug">
-              "We are successfully winning <span className="text-white border-b-2 border-yellow-500">Selection</span> with 10%+ CTRs on top queries. 50% of nodes are currently 'Blind' to AI crawlers. Priority: Inject FAQ/Product schema into the <strong>Sushi Maker</strong> and <strong>Accessories</strong> nodes immediately to capture 2026 search trends."
+              "We are successfully winning <span className="text-white border-b-2 border-yellow-500">Selection</span> with 10%+ CTRs on top queries. 50% of nodes are currently 'Blind' to AI crawlers. Priority: Inject FAQ/Product schema into the <strong>Sushi Maker</strong> and <strong>Accessories</strong> nodes immediately to capture emerging search trends."
             </p>
           </div>
         </div>
@@ -305,7 +287,9 @@ export default function AEOView() {
       </section>
 
       {/* DELTA ENGINE: Retrieval Gap Analysis */}
-      <DeltaRadar currentData={liveData.current.rows} previousData={liveData.previous.rows} />
+      <div className="min-h-87.5 min-w-0">
+        <DeltaRadar currentData={liveData.current.rows} previousData={liveData.previous.rows} />
+      </div>
     </div>
   );
 }
