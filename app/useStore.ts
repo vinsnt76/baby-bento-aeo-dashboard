@@ -38,6 +38,13 @@ export interface NodeData {
   ctr: number;
 }
 
+export interface AIInsights {
+  strategicHealth: string;
+  lowHangingFruit: string;
+  moonshot: string;
+  confidence: number;
+}
+
 interface GscDataPeriod {
   rows: any[];
   startDate: string;
@@ -67,8 +74,15 @@ interface DashboardState {
   reportEnd: string;
   selectedStartDate: string;
   selectedEndDate: string;
+  aiInsights: AIInsights | null;
+  isAiLoading: boolean;
+  aiError: string | null;
   setReportPeriod: (startDate: string, endDate: string) => void;
   setSelectedNode: (node: string | null) => void;
+  setAiInsights: (insights: AIInsights | null) => void;
+  setAiLoading: (loading: boolean) => void;
+  setAiError: (error: string | null) => void;
+  generateInsights: () => Promise<void>;
   processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod, nodes: VelocityRecord[]) => void;
 }
 
@@ -94,7 +108,13 @@ export const useStore = create<DashboardState>((set, get) => ({
   reportEnd: '',
   selectedStartDate: '',
   selectedEndDate: '',
+  aiInsights: null,
+  isAiLoading: false,
+  aiError: null,
   setReportPeriod: (startDate, endDate) => set({ selectedStartDate: startDate, selectedEndDate: endDate }),
+  setAiInsights: (insights) => set({ aiInsights: insights }),
+  setAiLoading: (loading) => set({ isAiLoading: loading }),
+  setAiError: (error) => set({ aiError: error }),
   setSelectedNode: (node: string | null) => {
     set({ selectedNode: node });
     const { mergedData } = get();
@@ -123,6 +143,62 @@ export const useStore = create<DashboardState>((set, get) => ({
         rankingMomentum: 0,
         formationScore: 0,
       });
+    }
+  },
+  generateInsights: async () => {
+    const { 
+        selectedNode, 
+        mergedData, 
+        ownershipScore, 
+        semanticDensity, 
+        rankingMomentum,
+        brandedClicks,
+        nonBrandedClicks
+    } = get();
+
+    if (mergedData.length === 0) return;
+
+    set({ isAiLoading: true, aiError: null });
+
+    try {
+        const totalClicks = brandedClicks + nonBrandedClicks;
+        // Calculate effective ownership score (Global Avg or Selected Node)
+        const effectiveOwnership = selectedNode 
+            ? ownershipScore 
+            : (mergedData.reduce((acc, n) => acc + (n.ownershipScore || 0), 0) / (mergedData.length || 1));
+
+        // Calculate retrieval lift for the selected node or global average
+        const rawLift = selectedNode
+            ? (mergedData.find(d => d.name === selectedNode)?.['AEO Lift'] || 0)
+            : (mergedData.reduce((acc, n) => acc + (n['AEO Lift'] || 0), 0) / (mergedData.length || 1));
+        const retrievalLift = Number(rawLift).toFixed(1);
+        
+        const payload = {
+            selectedNode: selectedNode || "Global Portfolio",
+            semantic_density: semanticDensity,
+            ranking_momentum: rankingMomentum,
+            ownership_score: effectiveOwnership,
+            retrieval_lift: `${retrievalLift}%`
+        };
+
+        const res = await fetch('/api/insights', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (res.ok) {
+            const json = await res.json();
+            if (json.error) throw new Error(json.error);
+            set({ aiInsights: json });
+        } else {
+            throw new Error("Failed to generate insights");
+        }
+    } catch (e: any) {
+        console.error("AI Insight Error:", e);
+        set({ aiError: "AI Strategist is currently offline. Please try again later." });
+    } finally {
+        set({ isAiLoading: false });
     }
   },
   processGscData: (currentData, previousData, nodes) => {

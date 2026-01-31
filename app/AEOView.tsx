@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
 import { useStore } from './useStore';
-import { sanitizeMetrics } from '../sanitizeMetrics';
 
 interface GscDataPeriod {
   rows: any[];
@@ -90,11 +89,8 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
 }
 
 export default function AEOView() {
-  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, brandedClicks, nonBrandedClicks, selectedNode, ownershipScore } = useStore();
+  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, brandedClicks, nonBrandedClicks, selectedNode, ownershipScore, semanticDensity, rankingMomentum, aiInsights, isAiLoading, aiError, generateInsights } = useStore();
   const [liveData, setLiveData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
-  const [aiInsights, setAiInsights] = useState<{ insights: string[], nextBestActions: string[], confidence: number } | null>(null);
-  const [isThinking, setIsThinking] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchLive() {
@@ -123,59 +119,12 @@ export default function AEOView() {
 
   // 🤖 AI STRATEGIST TRIGGER
   useEffect(() => {
-    async function fetchInsights() {
-      if (mergedData.length === 0) return;
-
-      setIsThinking(true);
-      setAiError(null);
-      
-      try {
-        const totalClicks = brandedClicks + nonBrandedClicks;
-        const brandedShare = totalClicks > 0 ? brandedClicks / totalClicks : 0;
-
-        // Calculate effective ownership score (Global Avg or Selected Node)
-        const effectiveOwnership = selectedNode 
-            ? ownershipScore 
-            : (mergedData.reduce((acc, n) => acc + (n.ownershipScore || 0), 0) / (mergedData.length || 1));
-        
-        // Map store data to sanitizer format
-        const sanitizerInput = {
-            selectionEfficiency,
-            ownershipScore: effectiveOwnership,
-            mergedData: mergedData.map(d => ({ node: d.name, retrievalLift: d['AEO Lift'] })),
-            brandedShare,
-            selectedNode
-        };
-
-        const payload = sanitizeMetrics(sanitizerInput);
-        
-        console.log("🤖 AI Input Payload:", payload);
-        
-        const res = await fetch('/api/insights', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (res.ok) {
-            const json = await res.json();
-            if (json.error) throw new Error(json.error);
-            setAiInsights(json);
-        } else {
-            throw new Error("Failed to generate insights");
-        }
-      } catch (e) {
-        console.error("AI Insight Error:", e);
-        setAiError("AI Strategist is currently offline. Please try again later.");
-      } finally {
-        setIsThinking(false);
-      }
-    }
-
-    const timer = setTimeout(fetchInsights, 800); // Debounce for slider/selection
+    const timer = setTimeout(() => {
+      generateInsights();
+    }, 800);
     return () => clearTimeout(timer);
     
-  }, [mergedData, selectionEfficiency, modelAuthority, brandedClicks, nonBrandedClicks, selectedNode, ownershipScore]);
+  }, [generateInsights, mergedData, selectedNode]);
 
   const isStoreReady = mergedData.length > 0;
 
@@ -272,9 +221,16 @@ export default function AEOView() {
             </div>
           </div>
           <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 backdrop-blur-sm">
-            <h5 className="text-xs font-bold text-yellow-100 uppercase mb-3 tracking-widest">Key Insights & Recommendations</h5>
+            <div className="flex justify-between items-center mb-3">
+              <h5 className="text-xs font-bold text-yellow-100 uppercase tracking-widest">Key Insights & Recommendations</h5>
+              {aiInsights?.confidence && (
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20">
+                  {Math.round(aiInsights.confidence * 100)}% Confidence
+                </span>
+              )}
+            </div>
             
-            {isThinking ? (
+            {isAiLoading ? (
               <div className="animate-pulse space-y-4">
                 <div className="h-4 bg-gray-600/50 rounded w-3/4"></div>
                 <div className="h-4 bg-gray-600/50 rounded w-full"></div>
@@ -294,18 +250,18 @@ export default function AEOView() {
               </div>
             ) : aiInsights ? (
               <div className="space-y-4 animate-fadeIn">
-                {aiInsights.insights.map((insight, i) => (
-                    <p key={i} className="text-sm text-gray-300 border-l-2 border-yellow-500/50 pl-3 italic">"{insight}"</p>
-                ))}
+                <p className="text-sm text-gray-300 border-l-2 border-yellow-500/50 pl-3 italic">"{aiInsights.strategicHealth}"</p>
                 <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-[10px] font-black uppercase text-[#FF6F61] mb-2">Next Best Actions</p>
+                    <p className="text-[10px] font-black uppercase text-[#FF6F61] mb-2">Tactical & Strategic</p>
                     <ul className="space-y-2">
-                        {aiInsights.nextBestActions.map((action, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm font-medium text-white">
-                                <span className="text-yellow-400 mt-1">›</span>
-                                {action}
-                            </li>
-                        ))}
+                        <li className="flex items-start gap-2 text-sm font-medium text-white">
+                            <span className="text-yellow-400 mt-1">›</span>
+                            <span className="text-pink-300 font-bold">Tactical:</span> {aiInsights.lowHangingFruit}
+                        </li>
+                        <li className="flex items-start gap-2 text-sm font-medium text-white">
+                            <span className="text-yellow-400 mt-1">›</span>
+                            <span className="text-slate-300 font-bold">Moonshot:</span> {aiInsights.moonshot}
+                        </li>
                     </ul>
                 </div>
               </div>
@@ -392,7 +348,7 @@ export default function AEOView() {
 
       {/* DELTA ENGINE: Retrieval Gap Analysis */}
       <div className="min-h-87.5 min-w-0">
-        <DeltaRadar currentData={liveData.current.rows} previousData={liveData.previous.rows} />
+        <DeltaRadar currentData={liveData.current.rows} />
       </div>
     </div>
   );

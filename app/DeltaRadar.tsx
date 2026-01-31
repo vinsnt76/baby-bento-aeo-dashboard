@@ -11,19 +11,16 @@ import KPICards from './KPICards';
 
 interface DeltaRadarProps {
   currentData: any[];
-  previousData: any[];
 }
 
-export default function DeltaRadar({ currentData, previousData }: DeltaRadarProps) {
-  const { mergedData, selectedNode, setSelectedNode } = useStore();
-  const [isReady, setIsReady] = useState(false);
+export default function DeltaRadar({ currentData }: DeltaRadarProps) {
+  const { mergedData, selectedNode, setSelectedNode, aiInsights, isAiLoading } = useStore();
+  const [isClient, setIsClient] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
-    // Delay by 100ms to allow Tailwind grid to finish 'painting'
-    const timer = setTimeout(() => setIsReady(true), 100);
-    return () => clearTimeout(timer);
+    setIsClient(true);
   }, []);
 
   useEffect(() => {
@@ -38,37 +35,31 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   const insights = useMemo(() => {
     if (!mergedData || !mergedData.length) return {};
     
-    // Sort nodes to find specific performance archetypes
     const sortedByOwnership = [...mergedData].sort((a, b) => b.nonBranded - a.nonBranded); // Using nonBranded count/share proxy
-    const sortedByMomentum = [...mergedData].sort((a, b) => (b.rawMomentum || 0) - (a.rawMomentum || 0));
-    const weakestNode = [...mergedData].sort((a, b) => a.formationScore - b.formationScore)[0];
-
     const topOwner = sortedByOwnership[0];
-    const topClimber = sortedByMomentum[0];
-
-    if (!topOwner || !topClimber || !weakestNode) return {};
+    if (!topOwner) return {};
 
     return {
       ownership: {
         title: "Ownership Signal",
         nodeName: topOwner.name,
         text: `${topOwner.name} leads in non-branded discovery. This entity is successfully decoupling from brand-only searches.`,
-        color: "blue"
+        color: "blue",
       },
-      momentum: {
-        title: "Momentum Alert",
-        nodeName: topClimber.name,
-        text: `${topClimber.name} shows the strongest velocity (Score: ${topClimber.formationScore.toFixed(0)}). Expect increased AI-overviews for this node shortly.`,
-        color: "pink"
+      tactical: {
+        title: "Tactical Win",
+        text: isAiLoading ? "Analyzing..." : (aiInsights?.lowHangingFruit || "Waiting for data..."),
+        color: "pink",
+        // Pass the selectedNode to make this insight actionable
+        nodeName: selectedNode,
       },
-      action: {
-        title: "Next Best Action",
-        nodeName: weakestNode.name,
-        text: `Priority: ${weakestNode.name}. Low semantic density detected. Deploy FAQ schema or supporting articles to reinforce this entity's 'Establishing' phase.`,
-        color: "slate"
+      strategic: {
+        title: "Strategic Moonshot",
+        text: isAiLoading ? "Thinking..." : (aiInsights?.moonshot || "Waiting for data..."),
+        color: "slate",
       }
     };
-  }, [mergedData]);
+  }, [mergedData, aiInsights, isAiLoading, selectedNode]);
 
   const activateBrief = (nodeName: string) => {
     const queryList = currentData
@@ -81,12 +72,12 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
   };
 
   // Safety check for data and hydration
-  if (!isReady || !currentData) {
-    return <div className="h-100 w-full animate-pulse bg-slate-800/20 rounded-2xl" />;
+  if (!isClient || !currentData) {
+    return <div className="h-75 w-full animate-pulse bg-slate-800/20 rounded-2xl" />;
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-red-500/10 rounded-2xl border border-red-500/50 min-h-[350px] min-w-0">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-red-500/10 rounded-2xl border border-red-500/50 min-h-87.5 min-w-0">
       
       {/* 📊 ENTITY FORMATION RADAR */}
       <div className={`${isZoomed ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'relative'} min-w-0`}>
@@ -209,12 +200,12 @@ export default function DeltaRadar({ currentData, previousData }: DeltaRadarProp
             <p className="text-slate-300 text-[13px] leading-relaxed">
               {insight.text}
             </p>
-            {insight.title === "Next Best Action" && (
+            {insight.title === "Tactical Win" && insight.nodeName && (
               <button 
                 onClick={() => activateBrief(insight.nodeName)}
                 className="mt-4 w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white transition-all active:scale-95"
               >
-                Activate Foundation
+                Activate Tactical Play
               </button>
             )}
           </div>
