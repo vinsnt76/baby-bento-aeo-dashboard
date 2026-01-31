@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import DeltaRadar from './DeltaRadar';
 import { useStore } from './useStore';
+import { sanitizeMetrics } from '../sanitizeMetrics';
 
 interface GscDataPeriod {
   rows: any[];
@@ -31,6 +32,14 @@ function MinusIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
       <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+function ExclamationIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
     </svg>
   );
 }
@@ -81,8 +90,11 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
 }
 
 export default function AEOView() {
-  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate } = useStore();
+  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, brandedClicks, nonBrandedClicks, selectedNode, ownershipScore } = useStore();
   const [liveData, setLiveData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
+  const [aiInsights, setAiInsights] = useState<{ insights: string[], nextBestActions: string[], confidence: number } | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchLive() {
@@ -108,6 +120,62 @@ export default function AEOView() {
       processGscData(liveData.current, liveData.previous, VELOCITY_DEC_25);
     }
   }, [liveData, processGscData]);
+
+  // 🤖 AI STRATEGIST TRIGGER
+  useEffect(() => {
+    async function fetchInsights() {
+      if (mergedData.length === 0) return;
+
+      setIsThinking(true);
+      setAiError(null);
+      
+      try {
+        const totalClicks = brandedClicks + nonBrandedClicks;
+        const brandedShare = totalClicks > 0 ? brandedClicks / totalClicks : 0;
+
+        // Calculate effective ownership score (Global Avg or Selected Node)
+        const effectiveOwnership = selectedNode 
+            ? ownershipScore 
+            : (mergedData.reduce((acc, n) => acc + (n.ownershipScore || 0), 0) / (mergedData.length || 1));
+        
+        // Map store data to sanitizer format
+        const sanitizerInput = {
+            selectionEfficiency,
+            ownershipScore: effectiveOwnership,
+            mergedData: mergedData.map(d => ({ node: d.name, retrievalLift: d['AEO Lift'] })),
+            brandedShare,
+            selectedNode
+        };
+
+        const payload = sanitizeMetrics(sanitizerInput);
+        
+        console.log("🤖 AI Input Payload:", payload);
+        
+        const res = await fetch('/api/insights', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (res.ok) {
+            const json = await res.json();
+            if (json.error) throw new Error(json.error);
+            setAiInsights(json);
+        } else {
+            throw new Error("Failed to generate insights");
+        }
+      } catch (e) {
+        console.error("AI Insight Error:", e);
+        setAiError("AI Strategist is currently offline. Please try again later.");
+      } finally {
+        setIsThinking(false);
+      }
+    }
+
+    const timer = setTimeout(fetchInsights, 800); // Debounce for slider/selection
+    return () => clearTimeout(timer);
+    
+  }, [mergedData, selectionEfficiency, modelAuthority, brandedClicks, nonBrandedClicks, selectedNode, ownershipScore]);
 
   const isStoreReady = mergedData.length > 0;
 
@@ -205,9 +273,45 @@ export default function AEOView() {
           </div>
           <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 backdrop-blur-sm">
             <h5 className="text-xs font-bold text-yellow-100 uppercase mb-3 tracking-widest">Key Insights & Recommendations</h5>
-            <p className="text-lg font-medium text-gray-200 leading-snug">
-              "We are successfully winning <span className="text-white border-b-2 border-yellow-500">Selection</span> with 10%+ CTRs on top queries. 50% of nodes are currently 'Blind' to AI crawlers. Priority: Inject FAQ/Product schema into the <strong>Sushi Maker</strong> and <strong>Accessories</strong> nodes immediately to capture emerging search trends."
-            </p>
+            
+            {isThinking ? (
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-gray-600/50 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-600/50 rounded w-full"></div>
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="h-3 bg-[#FF6F61]/20 rounded w-1/3 mb-2"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-600/50 rounded w-5/6"></div>
+                    <div className="h-4 bg-gray-600/50 rounded w-4/5"></div>
+                  </div>
+                </div>
+              </div>
+            ) : aiError ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center border border-red-500/20 bg-red-500/5 rounded-xl animate-fadeIn">
+                <ExclamationIcon className="w-8 h-8 text-red-400 mb-2" />
+                <p className="text-xs font-bold text-red-400 uppercase tracking-widest">Analysis Unavailable</p>
+                <p className="text-xs text-red-300/70 mt-1">{aiError}</p>
+              </div>
+            ) : aiInsights ? (
+              <div className="space-y-4 animate-fadeIn">
+                {aiInsights.insights.map((insight, i) => (
+                    <p key={i} className="text-sm text-gray-300 border-l-2 border-yellow-500/50 pl-3 italic">"{insight}"</p>
+                ))}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-[10px] font-black uppercase text-[#FF6F61] mb-2">Next Best Actions</p>
+                    <ul className="space-y-2">
+                        {aiInsights.nextBestActions.map((action, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm font-medium text-white">
+                                <span className="text-yellow-400 mt-1">›</span>
+                                {action}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Waiting for data signals...</p>
+            )}
           </div>
         </div>
       </section>

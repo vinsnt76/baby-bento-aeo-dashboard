@@ -1,165 +1,76 @@
-# **Baby Bento AEO Delta Dashboard**
+# Baby Bento AEO Dashboard
 
-The **AEO Delta Dashboard** transforms raw Google Search Console (GSC) data into a real‑time semantic intelligence layer.  
-It quantifies entity formation, category ownership, and ranking momentum using a mathematical scoring model built on top of live query‑level performance.
+An AI-driven dashboard for analyzing Answer Engine Optimization (AEO) performance, powered by Google Gemini.
 
-This project powers Baby Bento’s internal AEO research and provides a foundation for future semantic‑search tooling.
+## 🧠 Semantic Intelligence Layer
 
----
+The dashboard uses a dedicated "Semantic Intelligence Layer" to translate raw search metrics into strategic insights.
 
-## **🚀 Features**
+### 1. Insight Generation Workflow
 
-### **Semantic Intelligence Engine**
-- Maps GSC queries to entity nodes  
-- Computes semantic density, ownership, and formation scores  
-- Tracks ranking momentum over time  
-- Generates automated strategic insights
+1.  **Data Collection**: `useStore.ts` aggregates raw GSC data and calculates math models (Ownership, Efficiency).
+2.  **Sanitization**: `sanitizeMetrics.ts` acts as a firewall, stripping PII/raw queries and calculating high-level signals (Momentum, Density).
+3.  **API Request**: The client posts the sanitized payload to `/api/insights`.
+4.  **AI Analysis**: `gemini-1.5-flash` reasons over the metrics using the "AEO Strategist" system prompt.
+5.  **Rendering**: The UI displays the returned insights, confidence score, and next best actions.
 
-### **Visual Analytics**
-- **Delta Radar** — multi‑axis entity formation model  
-- **Category Ownership Bar Chart** — branded vs non‑branded share  
-- **Formation Leaderboard** — entity health ranking  
-- **Classic SEO View** — traditional ranking + CTR metrics  
-- **AEO View** — semantic‑first visibility model
+### 2. API Route: `/api/insights`
 
-### **State Architecture**
-- Unified Zustand store (`useStore.ts`)  
-- Strict TypeScript typing  
-- Shared state for mergedData, selectedNode, ownership metrics, and radar inputs
+**Endpoint**: `POST /api/insights`
 
-### **Stability Enhancements**
-- Layout locks to prevent Recharts width/height collapse  
-- Hydration guards to ensure charts render only after layout is ready  
-- Case‑sensitivity fix preventing “split‑brain” state issues  
-- Refactored CategoryOwnership into a standalone, stable component
+**Required Environment Variables**:
+- `GEMINI_API_KEY`: Your Google Gemini API key.
 
----
-
-## **📐 Mathematical Model**
-
-The dashboard computes several derived metrics from GSC data:
-
-### **Non‑Branded Share**
-```
-nonBrandedClicks / totalClicks
+**Request Payload (Sanitized)**:
+```json
+{
+  "semantic_density": "45.2%",
+  "ranking_momentum": "High Velocity",
+  "ownership_score": "68.50",
+  "retrieval_lift": "12.5%",
+  "branded_share": "40.0%",
+  "top_opportunities": "Sushi Maker (+15%), Lunchbox (+8%)",
+  "selected_node_context": "Global View"
+}
 ```
 
-### **Semantic Density**
-```
-queryCount × 15  (capped at 100)
-```
-
-### **Ownership Score**
-```
-nonBrandedShare × semanticDensity
-```
-
-### **Ranking Momentum**
-```
-previousPosition - currentPosition
-```
-
-### **Formation Score**
-Weighted blend of retrieval lift + ranking strength.
-
-These metrics power the radar chart, ownership bar chart, and insights engine.
-
----
-
-## **📦 Tech Stack**
-
-- **Next.js (App Router)**
-- **TypeScript**
-- **Zustand** (global state)
-- **Recharts** (visualizations)
-- **Tailwind CSS**
-- **Google Search Console API**
-- **Vercel** (deployment)
-
----
-
-## **📁 Project Structure**
-
-```
-/app
-  ├── AEOView.tsx
-  ├── ClassicSEOView.tsx
-  ├── DeltaRadar.tsx
-  ├── CategoryOwnership.tsx
-  ├── ChartContainer.tsx
-  ├── api/gsc/performance/route.ts
-  ├── velocity-dec-25.ts
-  ├── baseline-dec-25.ts
-  └── useStore.ts
-
-/public
-  └── assets, logos, icons
-
-/globals.css
-/next.config.ts
-/package.json
+**Response Shape**:
+```json
+{
+  "insights": [
+    "Ownership is strong (68%) but branded share is low, indicating organic entity growth.",
+    "High velocity in 'Sushi Maker' suggests recent schema injections are working."
+  ],
+  "nextBestActions": [
+    "Low Hanging Fruit: Add FAQ schema to the 'Lunchbox' node.",
+    "Moonshot: Target the 'Bento Accessories' Knowledge Panel."
+  ],
+  "confidence": 0.95
+}
 ```
 
----
+### 3. Sanitization Pipeline (`/lib/sanitizeMetrics.ts`)
 
-## **⚙️ Setup & Installation**
+This utility ensures data privacy and token efficiency.
 
-### **1. Clone the repo**
-```bash
-git clone https://github.com/vinsnt76/baby-bento-aeo-dashboard
-cd baby-bento-aeo-dashboard
-```
+-   **Input**: Full Zustand store state (Raw GSC rows, user queries).
+-   **Output**: 6 key semantic signals.
+-   **Security**: No user queries or raw performance rows are ever sent to the AI.
 
-### **2. Install dependencies**
-```bash
-npm install
-```
+### 4. Scoring Logic
 
-### **3. Add environment variables**
-Create `.env.local`:
+-   **Ranking Momentum**: Calculated based on the average `retrievalLift` of all active nodes.
+    -   `> 10%`: High Velocity
+    -   `> 0%`: Positive
+    -   `< 0%`: Regressing
+-   **Ownership Score**: A weighted composite of Merchant Position and Snippet Reach.
+-   **Selection Efficiency**: The ratio of clicks to rich impressions (Semantic CTR).
 
-```
-GSC_CLIENT_EMAIL=...
-GSC_PRIVATE_KEY=...
-GSC_PROPERTY_URL=...
-```
+### 5. System Prompt Versioning
 
-### **4. Run the dev server**
-```bash
-npm run dev
-```
-
----
-
-## **📌 Known Issues & Fixes**
-
-### **Case‑Sensitivity Store Conflict**
-Previously, `useStore.ts` and `usestore.ts` caused a split‑brain state.  
-This has been resolved — only the CamelCase file remains.
-
-### **Recharts Layout Collapse**
-Fixed via:
-- `min-h-[350px]` and `min-w-0` layout locks  
-- Hydration guards  
-- ChartContainer wrapper  
-
-### **React Hook Ordering**
-Resolved in `ClassicSEOView.tsx` and `DeltaRadar.tsx`.
-
----
-
-## **🧭 Roadmap**
-
-- Add unit tests for scoring model  
-- Add documentation for entity mapping  
-- Add export/reporting features  
-- Add multi‑property GSC support  
-- Add AI‑Overview visibility modeling  
-
----
-
-## **📄 License**
-
-MIT License — free to use, modify, and extend.
+- **v1.0 (Current)**:
+    - Logic: Ownership < 40% = Risk, Lift > 10% = Success.
+    - Constraints: Next Best Actions < 40 chars.
+    - Model: `gemini-1.5-flash`.
 
 ---
