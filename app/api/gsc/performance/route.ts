@@ -1,7 +1,7 @@
 import { google } from 'googleapis';
 import { NextResponse, NextRequest } from 'next/server';
 
-export const revalidate = 86400; // 24-hour cache
+export const dynamic = 'force-dynamic';
 
 // Helper to ensure we have a valid YYYY-MM-DD string
 const toISODate = (input: string | null): string | null => {
@@ -42,12 +42,10 @@ export async function GET(request: NextRequest) {
     // Using searchconsole v1 as it is the modern replacement for webmasters v3
     const gsc = google.searchconsole({ version: 'v1', auth });
 
-    // 📅 Date Logic
-    const { searchParams } = new URL(request.url);
-    
+    // 📅 Date Logic - Accessing searchParams from nextUrl is more efficient in Next.js
     // 1. Sanitize the inputs immediately
-    const sanitizedStart = toISODate(searchParams.get('start'));
-    const sanitizedEnd = toISODate(searchParams.get('end'));
+    const sanitizedStart = toISODate(request.nextUrl.searchParams.get('start'));
+    const sanitizedEnd = toISODate(request.nextUrl.searchParams.get('end'));
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
     
@@ -105,19 +103,26 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      current: {
-        rows: (currentRes.data.rows as GSCRow[]) || [],
-        startDate: currentStartDate,
-        endDate: currentEndDate,
+    return NextResponse.json(
+      {
+        current: {
+          rows: (currentRes.data.rows as GSCRow[]) || [],
+          startDate: currentStartDate,
+          endDate: currentEndDate,
+        },
+        previous: {
+          rows: (previousRes.data.rows as GSCRow[]) || [],
+          startDate: previousStartDate,
+          endDate: previousEndDate,
+        },
+        updatedAt: new Date().toISOString(),
       },
-      previous: {
-        rows: (previousRes.data.rows as GSCRow[]) || [],
-        startDate: previousStartDate,
-        endDate: previousEndDate,
-      },
-      updatedAt: new Date().toISOString()
-    });
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('GSC API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
