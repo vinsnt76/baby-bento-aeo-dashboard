@@ -117,16 +117,25 @@ export default function AEOView() {
     }
   }, [liveData, processGscData]);
 
-  // 🤖 AI STRATEGIST TRIGGER
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      generateInsights();
-    }, 800);
-    return () => clearTimeout(timer);
-    
-  }, [generateInsights, mergedData, selectedNode]);
-
   const isStoreReady = mergedData.length > 0;
+
+  // 🤖 AI STRATEGIST TRIGGER: One-time execution with debounce and status logging
+  const [aiFired, setAiFired] = useState(false);
+
+  useEffect(() => {
+    // Condition: Store must be populated, and we haven't triggered the one-time analysis yet
+    if (isStoreReady && !aiFired && !isAiLoading) {
+      console.log(`[AEO AI TRIGGER] Dashboard signal stabilized with ${mergedData.length} nodes. Starting 1500ms debounce...`);
+      
+      const timer = setTimeout(() => {
+        console.log('[AEO AI TRIGGER] Debounce complete. Executing generateInsights().');
+        generateInsights();
+        setAiFired(true);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isStoreReady, aiFired, isAiLoading, generateInsights, mergedData.length]);
 
   const fmtSnippetReach = isStoreReady ? retrievalVolume.toLocaleString() : "—";
   const fmtMerchantPos = isStoreReady ? modelAuthority.toFixed(2) : "—";
