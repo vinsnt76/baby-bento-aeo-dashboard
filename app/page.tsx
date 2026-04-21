@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import DownloadButton from './DownloadButton';
 import { BASELINE_DEC_25 } from './baseline-dec-25';
+import Link from 'next/link';
 import AEOView from './AEOView';
 import ClassicSEOView from './ClassicSEOView';
 import { useStore } from './useStore';
@@ -82,6 +83,12 @@ export default function BabyBentoDashboard() {
                 >
                     Classic SEO
                 </button>
+                <Link 
+                    href="/intent-insights"
+                    className="flex-1 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-center text-white/50 hover:text-white transition-all hover:bg-white/5"
+                >
+                    Intent Intel
+                </Link>
             </div>
         </div>
 
