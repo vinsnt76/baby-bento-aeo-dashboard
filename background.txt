@@ -1,0 +1,43 @@
+
+
+# **Background Site Information: S/W/F Boutique (au.swfboutique.com)**
+
+
+
+**🔗 https://au.swfboutique.com**  
+*(S/W/F Boutique – Australia)*
+
+S/W/F Boutique is an Australian women’s fashion brand offering globally shipped apparel. The site represents the Australian storefront for the label, which is known for contemporary, minimalist, and resort‑inspired clothing.
+
+## **Key Characteristics**
+- **Industry:** Women’s fashion & apparel  
+- **Region:** Australia (with worldwide shipping available)  
+- **Product Focus:** Dresses, resort wear, seasonal collections, and modern minimalist pieces  
+- **Brand Style:** Natural fabrics, flowy silhouettes, elevated casualwear  
+- **Marketing Channels:**  
+  - Email newsletter sign‑ups  
+  - SMS marketing  
+  - Social media (notably Instagram @swfboutique)
+
+## **Website Structure Indicators**
+From the tab metadata and typical Shopify storefront patterns, the site likely includes:
+- Homepage featuring new arrivals and seasonal collections  
+- Collection pages for categories such as dresses, tops, bottoms, and sets  
+- Product detail pages with imagery, descriptions, and size guides  
+- Footer links including:
+  - Size Guide  
+  - Shipping & Returns  
+  - Terms & Conditions  
+  - Privacy Policy  
+  - Contact information  
+
+## **Purpose of This Background Section**
+This background information provides context for any:
+- Ecommerce audit  
+- UX/CRO review  
+- SEO analysis  
+- Competitive benchmarking  
+- Marketing or merchandising evaluation  
+
+It ensures that all subsequent analysis is grounded in an accurate understanding of the brand and its digital storefront.
+
