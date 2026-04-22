@@ -1,5 +1,5 @@
 import React from 'react';
-import QueryIntentPanel from '@/app/components/QueryIntentPanel';
+import QueryIntentPanel from '@/components/QueryIntentPanel';
 
 export default function DashboardPage() {
   return (

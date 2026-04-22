@@ -195,7 +195,7 @@ export default function AEOView() {
                   <span>{buoyantPct}%</span>
                 </div>
                 <div className="w-full bg-gray-800 h-2 rounded-full">
-                  <div className="bg-green-400 h-full transition-all duration-1000 progress-fill" style={{ '--progress-width': `${buoyantPct}%` } as React.CSSProperties}></div>
+                  <div className="bg-green-400 h-full transition-all duration-1000 progress-buoyant" style={{ '--buoyant-width': `${buoyantPct}%` } as React.CSSProperties}></div>
                 </div>
               </div>
               <div>
@@ -204,7 +204,7 @@ export default function AEOView() {
                   <span>{establishingPct}%</span>
                 </div>
                 <div className="w-full bg-gray-800 h-2 rounded-full">
-                  <div className="bg-blue-400 h-full transition-all duration-1000 progress-fill" style={{ '--progress-width': `${establishingPct}%` } as React.CSSProperties}></div>
+                  <div className="bg-blue-400 h-full transition-all duration-1000 progress-establishing" style={{ '--establishing-width': `${establishingPct}%` } as React.CSSProperties}></div>
                 </div>
               </div>
               <div>
@@ -213,7 +213,7 @@ export default function AEOView() {
                   <span>{missingPct}%</span>
                 </div>
                 <div className="w-full bg-gray-800 h-2 rounded-full">
-                  <div className="bg-red-400 h-full transition-all duration-1000 progress-fill" style={{ '--progress-width': `${missingPct}%` } as React.CSSProperties}></div>
+                  <div className="bg-red-400 h-full transition-all duration-1000 progress-missing" style={{ '--missing-width': `${missingPct}%` } as React.CSSProperties}></div>
                 </div>
               </div>
             </div>

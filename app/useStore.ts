@@ -47,13 +47,13 @@ export interface AIInsights {
   confidence: number;
 }
 
-export interface GscDataPeriod {
+interface GscDataPeriod {
   rows: any[];
   startDate: string;
   endDate: string;
 }
 
-export interface DashboardState {
+interface DashboardState {
   mergedData: NodeData[];
   selectedNode: string | null;
   // Aggregate metrics for the selected node or overall view
@@ -79,6 +79,7 @@ export interface DashboardState {
   aiInsights: AIInsights | null;
   isAiLoading: boolean;
   isGscLoading: boolean;
+  rows: any[]; 
   currentGscRows: any[];
   previousGscRows: any[];
   aiError: string | null;
@@ -126,6 +127,7 @@ export const useStore = create<DashboardState>((set, get) => ({
   previousGscRows: [],
   aiError: null,
   gscError: null,
+  rows: [],
   ownership_score: 0,
   retrieval_lift: 0,
   semantic_density: 0,
@@ -249,6 +251,7 @@ export const useStore = create<DashboardState>((set, get) => ({
       const json = await res.json();
       if (json.current) {
         set({
+          rows: json.current.rows,
           currentGscRows: json.current.rows,
           previousGscRows: json.previous.rows,
           reportStart: json.current.startDate,
