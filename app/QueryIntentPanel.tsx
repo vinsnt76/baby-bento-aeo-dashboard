@@ -21,6 +21,8 @@ export default function QueryIntentPanel() {
     currentGscRows
   } = useStore();
 
+  const rows = useStore((state) => state.rows || []);
+
   // Centralized fetch trigger
   useEffect(() => {
     fetchGscData();
