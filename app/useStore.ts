@@ -47,13 +47,13 @@ export interface AIInsights {
   confidence: number;
 }
 
-interface GscDataPeriod {
+export interface GscDataPeriod {
   rows: any[];
   startDate: string;
   endDate: string;
 }
 
-interface DashboardState {
+export interface DashboardState {
   mergedData: NodeData[];
   selectedNode: string | null;
   // Aggregate metrics for the selected node or overall view
