@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { VELOCITY_DEC_25 } from './velocity-dec-25';
 import { useStore } from './useStore';
 
 interface GscDataPeriod {
@@ -46,7 +45,7 @@ export default function ClassicSEOView() {
 
   useEffect(() => {
     if (data.current.rows.length > 0) {
-      processGscData(data.current, data.previous, VELOCITY_DEC_25);
+      processGscData(data.current, data.previous);
     }
   }, [data, processGscData]);
 
