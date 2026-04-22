@@ -1,6 +1,8 @@
 'use client';
 
 import { create } from 'zustand';
+import { VELOCITY_DEC_25 } from '@/app/velocity-dec-25'; // Import static data
+
 
 // This type is based on velocity-dec-25.ts to ensure type safety.
 export interface VelocityRecord {
@@ -76,6 +78,9 @@ interface DashboardState {
   selectedEndDate: string;
   aiInsights: AIInsights | null;
   isAiLoading: boolean;
+  isGscLoading: boolean; // New loading state for GSC data
+  currentGscRows: any[]; // Raw GSC data for current period
+  previousGscRows: any[]; // Raw GSC data for previous period
   aiError: string | null;
   setReportPeriod: (startDate: string, endDate: string) => void;
   setSelectedNode: (node: string | null) => void;
@@ -83,7 +88,8 @@ interface DashboardState {
   setAiLoading: (loading: boolean) => void;
   setAiError: (error: string | null) => void;
   generateInsights: () => Promise<void>;
-  processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod, nodes: VelocityRecord[]) => void;
+  fetchGscData: () => Promise<void>; // New async action to fetch GSC data
+  processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod) => void; // Updated signature
 }
 
 // Ensure "export const useStore" is explicitly named
@@ -110,6 +116,9 @@ export const useStore = create<DashboardState>((set, get) => ({
   selectedEndDate: '',
   aiInsights: null,
   isAiLoading: false,
+  isGscLoading: false,
+  currentGscRows: [],
+  previousGscRows: [],
   aiError: null,
   setReportPeriod: (startDate, endDate) => set({ selectedStartDate: startDate, selectedEndDate: endDate }),
   setAiInsights: (insights) => set({ aiInsights: insights }),
@@ -201,8 +210,45 @@ export const useStore = create<DashboardState>((set, get) => ({
         set({ isAiLoading: false });
     }
   },
-  processGscData: (currentData, previousData, nodes) => {
+  fetchGscData: async () => {
+    const { selectedStartDate, selectedEndDate, processGscData } = get();
+    set({ isGscLoading: true, gscError: null });
+    try {
+      let url = '/api/gsc/performance';
+      if (selectedStartDate && selectedEndDate) {
+        url += `?start=${selectedStartDate}&end=${selectedEndDate}`;
+      }
+      const res = await fetch(url);
+
+      // Handle GSC specific data delay (500)
+      if (res.status === 500) {
+        set({ gscError: "GSC Data Delay: Please select a date range at least 3 days old." });
+        return;
+      }
+
+      if (!res.ok) throw new Error(`GSC API Error: ${res.status}`);
+
+      const json = await res.json();
+      if (json.current) {
+        set({
+          currentGscRows: json.current.rows,
+          previousGscRows: json.previous.rows,
+          reportStart: json.current.startDate,
+          reportEnd: json.current.endDate,
+        });
+        // Process the fetched data
+        processGscData(json.current, json.previous);
+      }
+    } catch (e: any) {
+      console.error('Failed to fetch GSC data:', e);
+      set({ gscError: 'Failed to load GSC data. Please try again.' });
+    } finally {
+      set({ isGscLoading: false });
+    }
+  },
+  processGscData: (currentData, previousData) => {
     const brandTerms = ['baby bento', 'babybento', 'baby-bento', 'bb bento', 'bento baby', 'baby bento box'];
+    const nodes = VELOCITY_DEC_25; // Use the imported static data
 
     const calculatedData = nodes.map(node => {
       const tokens = node.node.toLowerCase().split(' ');
@@ -300,12 +346,25 @@ export const useStore = create<DashboardState>((set, get) => ({
     // After setting data, initialize the aggregate click counts
     const totalBranded = calculatedData.reduce((acc, curr) => acc + curr.branded, 0);
     const totalNonBranded = calculatedData.reduce((acc, curr) => acc + curr.nonBranded, 0);
+
+    // --- State Synchronization for AEO Keys ---
+    const totalNodes = calculatedData.length || 1;
+    const avgOwnership = calculatedData.reduce((a, b) => a + b.ownershipScore, 0) / totalNodes;
+    const avgDensity = calculatedData.reduce((a, b) => a + b.semanticDensity, 0) / totalNodes;
+    const avgLift = calculatedData.reduce((a, b) => a + b['AEO Lift'], 0) / totalNodes;
+    const buoyantCount = calculatedData.filter(n => n.status === 'Optimal').length;
+    const globalStatus = buoyantCount > (totalNodes / 2) ? 'Optimal' : 'Optimizing';
+
     set({
       mergedData: calculatedData as NodeData[],
       selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes,
       prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes,
       brandedClicks: totalBranded,
       nonBrandedClicks: totalNonBranded,
+      ownership_score: avgOwnership,
+      semantic_density: avgDensity,
+      retrieval_lift: `${avgLift.toFixed(1)}%`,
+      status: globalStatus,
       reportStart: currentData.startDate,
       reportEnd: currentData.endDate,
       selectedStartDate: currentData.startDate,

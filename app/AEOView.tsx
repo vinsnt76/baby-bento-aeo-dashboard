@@ -4,13 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { VELOCITY_DEC_25 } from '@/app/velocity-dec-25';
 import DeltaRadar from '@/app/DeltaRadar';
 import { useStore } from '@/app/useStore';
+import type { GscDataPeriod } from '@/app/useStore'; // Verbatim compliance
 import QueryIntentPanel from '@/app/components/QueryIntentPanel';
-
-interface GscDataPeriod {
-  rows: any[];
-  startDate: string;
-  endDate: string;
-}
 
 function ArrowUpIcon({ className }: { className?: string }) {
   return (
@@ -90,33 +85,13 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
 }
 
 export default function AEOView() {
-  const { processGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, brandedClicks, nonBrandedClicks, selectedNode, ownershipScore, semanticDensity, rankingMomentum, aiInsights, isAiLoading, aiError, generateInsights } = useStore();
-  const [liveData, setLiveData] = useState<{ current: GscDataPeriod, previous: GscDataPeriod }>({ current: { rows: [], startDate: '', endDate: '' }, previous: { rows: [], startDate: '', endDate: '' } });
+  const { fetchGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, aiInsights, isAiLoading, aiError, gscError, generateInsights, isGscLoading, currentGscRows } = useStore();
+
 
   useEffect(() => {
-    async function fetchLive() {
-      try {
-        let url = '/api/gsc/performance';
-        if (selectedStartDate && selectedEndDate) {
-          url += `?start=${selectedStartDate}&end=${selectedEndDate}`;
-        }
-        const res = await fetch(url);
-        const json = await res.json();
-        if (json.current) {
-          setLiveData(json);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    fetchLive();
-  }, [selectedStartDate, selectedEndDate]);
-
-  useEffect(() => {
-    if (liveData.current.rows.length > 0) {
-      processGscData(liveData.current, liveData.previous);
-    }
-  }, [liveData, processGscData]);
+    // Trigger the store's fetch action when dates change
+    fetchGscData();
+  }, [selectedStartDate, selectedEndDate, fetchGscData]);
 
   const isStoreReady = mergedData.length > 0;
 
@@ -150,6 +125,13 @@ export default function AEOView() {
 
   return (
     <div className="space-y-24 animate-fadeIn">
+      {gscError && (
+        <div className="p-6 border-4 border-red-500/20 bg-red-500/5 rounded-2xl flex items-center gap-4 animate-fadeIn">
+          <ExclamationIcon className="w-10 h-10 text-red-500" />
+          <p className="text-sm font-black text-red-500 uppercase tracking-widest">{gscError}</p>
+        </div>
+      )}
+
       {/* SECTION 1: SCORECARDS */}
       <section>
         <div className="inline-block rounded-md bg-[#FF6F61] text-white px-4 py-2 font-semibold uppercase tracking-widest text-sm mb-8 shadow-lg">
@@ -344,8 +326,8 @@ export default function AEOView() {
       </section>
 
       {/* DELTA ENGINE: Retrieval Gap Analysis */}
-      <div className="min-h-87.5 min-w-0">
-        <DeltaRadar currentData={liveData.current.rows} />
+      <div className="min-h-87.5 min-w-0"> {/* Ensure DeltaRadar can handle currentGscRows */}
+        <DeltaRadar currentData={currentGscRows} />
       </div>
     </div>
   );
