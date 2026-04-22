@@ -85,7 +85,7 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
 }
 
 export default function AEOView() {
-  const { fetchGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, aiInsights, isAiLoading, aiError, gscError, generateInsights, isGscLoading, currentGscRows } = useStore();
+  const { fetchGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, aiInsights, isAiLoading, aiError, gscError, generateInsights, isGscLoading, currentGscRows, ownership_score } = useStore();
 
 
   useEffect(() => {

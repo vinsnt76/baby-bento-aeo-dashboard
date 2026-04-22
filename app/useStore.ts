@@ -47,13 +47,13 @@ export interface AIInsights {
   confidence: number;
 }
 
-interface GscDataPeriod {
+export interface GscDataPeriod {
   rows: any[];
   startDate: string;
   endDate: string;
 }
 
-interface DashboardState {
+export interface DashboardState {
   mergedData: NodeData[];
   selectedNode: string | null;
   // Aggregate metrics for the selected node or overall view
@@ -78,18 +78,23 @@ interface DashboardState {
   selectedEndDate: string;
   aiInsights: AIInsights | null;
   isAiLoading: boolean;
-  isGscLoading: boolean; // New loading state for GSC data
-  currentGscRows: any[]; // Raw GSC data for current period
-  previousGscRows: any[]; // Raw GSC data for previous period
+  isGscLoading: boolean;
+  currentGscRows: any[];
+  previousGscRows: any[];
   aiError: string | null;
+  gscError: string | null;
+  ownership_score: number;
+  retrieval_lift: number;
+  semantic_density: number;
+  status: string;
   setReportPeriod: (startDate: string, endDate: string) => void;
   setSelectedNode: (node: string | null) => void;
   setAiInsights: (insights: AIInsights | null) => void;
   setAiLoading: (loading: boolean) => void;
   setAiError: (error: string | null) => void;
   generateInsights: () => Promise<void>;
-  fetchGscData: () => Promise<void>; // New async action to fetch GSC data
-  processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod) => void; // Updated signature
+  fetchGscData: (start?: string, end?: string) => Promise<void>;
+  processGscData: (currentData: GscDataPeriod, previousData: GscDataPeriod) => void;
 }
 
 // Ensure "export const useStore" is explicitly named
@@ -120,6 +125,11 @@ export const useStore = create<DashboardState>((set, get) => ({
   currentGscRows: [],
   previousGscRows: [],
   aiError: null,
+  gscError: null,
+  ownership_score: 0,
+  retrieval_lift: 0,
+  semantic_density: 0,
+  status: 'Initialising',
   setReportPeriod: (startDate, endDate) => set({ selectedStartDate: startDate, selectedEndDate: endDate }),
   setAiInsights: (insights) => set({ aiInsights: insights }),
   setAiLoading: (loading) => set({ isAiLoading: loading }),
@@ -210,23 +220,31 @@ export const useStore = create<DashboardState>((set, get) => ({
         set({ isAiLoading: false });
     }
   },
-  fetchGscData: async () => {
-    const { selectedStartDate, selectedEndDate, processGscData } = get();
+  fetchGscData: async (start, end) => {
+    const { selectedStartDate, selectedEndDate, processGscData, setReportPeriod } = get();
+    const finalStart = start || selectedStartDate;
+    const finalEnd = end || selectedEndDate;
+
+    if (start && end) {
+        setReportPeriod(start, end);
+    }
+
     set({ isGscLoading: true, gscError: null });
     try {
       let url = '/api/gsc/performance';
-      if (selectedStartDate && selectedEndDate) {
-        url += `?start=${selectedStartDate}&end=${selectedEndDate}`;
+      if (finalStart && finalEnd) {
+        url += `?start=${finalStart}&end=${finalEnd}`;
       }
       const res = await fetch(url);
 
-      // Handle GSC specific data delay (500)
       if (res.status === 500) {
-        set({ gscError: "GSC Data Delay: Please select a date range at least 3 days old." });
+        set({ gscError: "GSC Data Delay: Try a date 3+ days old." });
         return;
       }
 
-      if (!res.ok) throw new Error(`GSC API Error: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`GSC API Error: ${res.status}`);
+      }
 
       const json = await res.json();
       if (json.current) {
@@ -363,7 +381,7 @@ export const useStore = create<DashboardState>((set, get) => ({
       nonBrandedClicks: totalNonBranded,
       ownership_score: avgOwnership,
       semantic_density: avgDensity,
-      retrieval_lift: `${avgLift.toFixed(1)}%`,
+      retrieval_lift: avgLift,
       status: globalStatus,
       reportStart: currentData.startDate,
       reportEnd: currentData.endDate,

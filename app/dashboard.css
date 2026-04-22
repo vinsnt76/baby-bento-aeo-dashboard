@@ -9,6 +9,18 @@
   width: var(--progress-width, 0%);
 }
 
+.progress-buoyant {
+  width: var(--buoyant-width, 0%);
+}
+
+.progress-establishing {
+  width: var(--establishing-width, 0%);
+}
+
+.progress-missing {
+  width: var(--missing-width, 0%);
+}
+
 .intent-label-value {
   color: var(--intent-color);
 }
