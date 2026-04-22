@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { VELOCITY_DEC_25 } from './velocity-dec-25';
-import DeltaRadar from './DeltaRadar';
-import { useStore } from './useStore';
+import { VELOCITY_DEC_25 } from '@/app/velocity-dec-25';
+import DeltaRadar from '@/app/DeltaRadar';
+import { useStore } from '@/app/useStore';
+import QueryIntentPanel from '@/app/components/QueryIntentPanel';
 
 interface GscDataPeriod {
   rows: any[];
@@ -113,7 +114,7 @@ export default function AEOView() {
 
   useEffect(() => {
     if (liveData.current.rows.length > 0) {
-      processGscData(liveData.current, liveData.previous, VELOCITY_DEC_25);
+      processGscData(liveData.current, liveData.previous);
     }
   }, [liveData, processGscData]);
 
@@ -211,21 +212,27 @@ export default function AEOView() {
                   <span className="text-green-400">Buoyant (Retrieved)</span>
                   <span>{buoyantPct}%</span>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-green-400 h-full transition-all duration-1000" style={{ width: `${buoyantPct}%` }}></div></div>
+                <div className="w-full bg-gray-800 h-2 rounded-full">
+                  <div className="bg-green-400 h-full transition-all duration-1000 progress-fill" style={{ '--progress-width': `${buoyantPct}%` } as React.CSSProperties}></div>
+                </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter">
                   <span className="text-blue-400">Establishing</span>
                   <span>{establishingPct}%</span>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-blue-400 h-full transition-all duration-1000" style={{ width: `${establishingPct}%` }}></div></div>
+                <div className="w-full bg-gray-800 h-2 rounded-full">
+                  <div className="bg-blue-400 h-full transition-all duration-1000 progress-fill" style={{ '--progress-width': `${establishingPct}%` } as React.CSSProperties}></div>
+                </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter">
                   <span className="text-red-400">Missing (Technical Debt)</span>
                   <span>{missingPct}%</span>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full"><div className="bg-red-400 h-full transition-all duration-1000" style={{ width: `${missingPct}%` }}></div></div>
+                <div className="w-full bg-gray-800 h-2 rounded-full">
+                  <div className="bg-red-400 h-full transition-all duration-1000 progress-fill" style={{ '--progress-width': `${missingPct}%` } as React.CSSProperties}></div>
+                </div>
               </div>
             </div>
           </div>
@@ -283,26 +290,7 @@ export default function AEOView() {
 
       {/* SECTION 2: INTENT FAN-OUT */}
       <section>
-        <div className="inline-block rounded-md bg-[#FF6F61] text-white px-4 py-2 font-semibold uppercase tracking-widest text-sm mb-8 shadow-lg">
-            Query Intent Fan-Out
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {[
-            { title: "Commercial", weight: "84%", play: "Add 'Check Price' to tables." },
-            { title: "Informational", weight: "12%", play: "Inject VideoObject schema." },
-            { title: "Transactional", weight: "04%", play: "Audit GTINs in Merchant Center." }
-          ].map((intent, i) => (
-            <div key={i} className="bg-[#2D334A]/80 backdrop-blur-md p-8 rounded-4xl border border-white/10 shadow-inner group hover:shadow-[0_0_30px_rgba(252,211,77,0.15)] transition-all duration-300">
-              <p className="font-black text-xs uppercase tracking-tighter text-white leading-relaxed mb-2">{intent.title} Intent</p>
-              <span className="text-5xl font-black italic text-[#FEF3C7] tracking-tight">{intent.weight}</span>
-              <div className="mt-8 p-5 bg-white/5 rounded-xl border border-white/5 group-hover:bg-white/10 transition-colors">
-                <p className="text-[10px] font-black uppercase text-[#FF6F61] mb-1">Strategic Play</p>
-                <p className="text-sm font-bold text-white italic leading-snug">{intent.play}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <QueryIntentPanel />
       </section>
 
       {/* SECTION 3: VELOCITY TABLE */}

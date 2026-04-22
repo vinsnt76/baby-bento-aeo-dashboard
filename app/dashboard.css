@@ -1,0 +1,39 @@
+/* Global Dashboard Utilities */
+
+.dashboard-container {
+  background-image: radial-gradient(at top left, #2a1a5e 0%, transparent 50%), 
+                    radial-gradient(at bottom right, #0f4c75 0%, transparent 50%);
+}
+
+.progress-fill {
+  width: var(--progress-width, 0%);
+}
+
+.intent-label-value {
+  color: var(--intent-color);
+}
+
+.intent-progress-fill {
+  width: var(--intent-weight, 0%);
+  background-color: var(--intent-color);
+  box-shadow: 0 0 10px var(--intent-color);
+}
+
+.radar-tick {
+  cursor: pointer;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

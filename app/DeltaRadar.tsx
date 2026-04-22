@@ -105,7 +105,7 @@ export default function DeltaRadar({ currentData }: DeltaRadarProps) {
                     <g 
                       transform={`translate(${x},${y})`} 
                       onClick={() => setSelectedNode(payload.value)}
-                      style={{ cursor: 'pointer' }}
+                      className="radar-tick"
                     >
                       <text
                         x={0}
