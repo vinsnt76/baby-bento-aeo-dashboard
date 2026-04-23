@@ -1,133 +1,78 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useStore } from '@/app/useStore';
 
-const INTENT_PATTERNS = {
-  transactional: /\b(buy|order|shop|checkout|price|discount|sale|store)\b/i,
-  commercial: /\b(best|review|vs|top|compare|comparison|cheapest|affordable)\b/i,
-  informational: /\b(how|what|why|guide|tips|tutorial|meaning|definition|benefits)\b/i
-};
+const STRATEGIC_MAP = {
+  All: {
+    comm: "Optimize 'Best' guides for Gemini retrieval.",
+    info: "Identify PAA gaps in top-performing nodes.",
+    tran: "Align GTINs for Google Shopping surfacing."
+  },
+  Navigational: {
+    comm: "Protect brand space against 'vs' competitors.",
+    info: "Update FAQ schema for branded long-tail queries.",
+    tran: "Streamline sitelink structure for direct intent."
+  },
+  Discovery: {
+    comm: "Aggressive 'Comparison Table' injection.",
+    info: "Build 'How-to' VideoObjects for non-branded terms.",
+    tran: "Verify Merchant Center feed health for broad terms."
+  }
+} as const;
 
-export default function QueryIntentPanel() {
-  const { 
-    selectedStartDate, 
-    selectedEndDate, 
-    aiInsights, 
-    isAiLoading,
-    isGscLoading,
-    generateInsights,
-    fetchGscData,
-    currentGscRows
-  } = useStore();
+interface QueryIntentPanelProps {
+  activeFilter?: 'All' | 'Navigational' | 'Discovery';
+}
 
-  const rows = useStore((state) => state.rows || []);
+export default function QueryIntentPanel({ activeFilter = 'All' }: QueryIntentPanelProps) {
+  const { filteredRows } = useStore();
 
-  // Centralized fetch trigger
-  useEffect(() => {
-    fetchGscData();
-  }, [selectedStartDate, selectedEndDate]);
+  const stats = useMemo(() => {
+    if (!filteredRows || filteredRows.length === 0) return [];
 
-  // 2. Compute Intent Percentages
-  const intentData = useMemo(() => {
-    if (!rows.length) return { transactional: 0, commercial: 0, informational: 0 };
-
-    let counts = { transactional: 0, commercial: 0, informational: 0 };
-    currentGscRows.forEach(row => {
+    const intentCounts = { Informational: 0, Transactional: 0, Commercial: 0, Navigational: 0 };
+    
+    filteredRows.forEach(row => {
       const query = row.keys[0].toLowerCase();
-      if (INTENT_PATTERNS.transactional.test(query)) counts.transactional++;
-      else if (INTENT_PATTERNS.commercial.test(query)) counts.commercial++;
-      else if (INTENT_PATTERNS.informational.test(query)) counts.informational++;
+      if (query.match(/best|top|vs|review|compare|comparison|rating/)) intentCounts.Commercial++;
+      else if (query.match(/buy|order|shop|price|cheap|sale|discount|store|stockist/)) intentCounts.Transactional++;
+      else if (query.match(/how|why|what|guide|tips|recipe|ideas|clean|wash|leak/)) intentCounts.Informational++;
+      else intentCounts.Navigational++;
     });
 
-    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+    const total = filteredRows.length || 1;
     return {
-      transactional: Math.round((counts.transactional / total) * 100),
-      commercial: Math.round((counts.commercial / total) * 100),
-      informational: Math.round((counts.informational / total) * 100)
+      comm: Math.round((intentCounts.Commercial / total) * 100),
+      info: Math.round((intentCounts.Informational / total) * 100),
+      tran: Math.round((intentCounts.Transactional / total) * 100),
     };
-  }, [currentGscRows]);
+  }, [filteredRows]);
 
-  // 3. Trigger AI when intent profile shifts
-  useEffect(() => {
-    if (currentGscRows.length > 0) {
-      generateInsights();
-    }
-  }, [intentData.transactional, intentData.commercial, intentData.informational, generateInsights]);
+  if (!stats || Array.isArray(stats)) return null;
+  const currentPlay = STRATEGIC_MAP[activeFilter];
 
-  if (isGscLoading) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-64 bg-white/5 animate-pulse rounded-4xl border border-white/10" />
-        ))}
+  const Card = ({ label, value, play }: { label: string; value: number; play: string }) => (
+    <div className="bg-[#1e1b4b]/50 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-2xl">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 mb-2">{label} Intent</p>
+      <h3 className="text-5xl font-black text-white mb-6 tracking-tighter">{value.toString().padStart(2, '0')}%</h3>
+      <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+        <p className="text-[9px] font-black text-[#FF6F61] uppercase tracking-widest mb-1">Strategic Play</p>
+        <p className="text-xs text-white/90 italic font-medium leading-relaxed">"{play}"</p>
       </div>
-    );
-  }
-
-  const cards = [
-    { 
-      title: "Commercial", 
-      weight: `${intentData.commercial}%`, 
-      color: "#FCD34D",
-      play: aiInsights?.lowHangingFruit || "Analyzing commercial opportunities..."
-    },
-    { 
-      title: "Informational", 
-      weight: `${intentData.informational}%`, 
-      color: "#7DD3FC",
-      play: aiInsights?.strategicHealth || "Evaluating information architecture..."
-    },
-    { 
-      title: "Transactional", 
-      weight: `${intentData.transactional}%`, 
-      color: "#FCA5A5",
-      play: aiInsights?.moonshot || "Optimizing conversion funnels..."
-    }
-  ];
+    </div>
+  );
 
   return (
-    <section className="space-y-8 animate-fadeIn">
-      <div className="inline-block rounded-md bg-[#FF6F61] text-white px-4 py-2 font-semibold uppercase tracking-widest text-sm shadow-lg">
+    <div className="space-y-6">
+      <div className="inline-block bg-[#FF6F61] text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-orange-500/10">
         Query Intent Fan-Out
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {cards.map((intent, i) => (
-          <div key={i} className="bg-[#2D334A]/80 backdrop-blur-md p-8 rounded-4xl border border-white/10 shadow-inner group hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-black text-xs uppercase tracking-widest text-white/50 mb-2">
-                  {intent.title} Intent
-                </p>
-                <span className="text-6xl font-black italic text-white tracking-tighter intent-label-value" style={{ '--intent-color': intent.color } as React.CSSProperties}>
-                  {intent.weight}
-                </span>
-              </div>
-            </div>
-            <div className="mt-8 p-6 bg-white/5 rounded-2xl border border-white/5 group-hover:bg-white/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-1.5 h-4 bg-[#FF6F61] rounded-full" />
-                <p className="text-[10px] font-black uppercase text-white/80 tracking-widest">AI Strategic Play</p>
-              </div>
-              <p className="text-sm font-medium text-slate-200 leading-relaxed italic">
-                {intent.play}
-              </p>
-            </div>
-            
-            {/* Progress Bar Background */}
-            <div className="mt-6 w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="h-full transition-all duration-1000 ease-out intent-progress-fill"
-                style={{ 
-                  '--intent-weight': intent.weight, 
-                  '--intent-color': intent.color
-                } as React.CSSProperties} 
-              />
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card label="Commercial" value={stats.comm} play={currentPlay.comm} />
+        <Card label="Informational" value={stats.info} play={currentPlay.info} />
+        <Card label="Transactional" value={stats.tran} play={currentPlay.tran} />
       </div>
-    </section>
+    </div>
   );
 }

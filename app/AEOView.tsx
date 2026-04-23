@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { VELOCITY_DEC_25 } from '@/app/velocity-dec-25';
 import DeltaRadar from '@/app/DeltaRadar';
 import { useStore } from '@/app/useStore';
 import type { GscDataPeriod } from '@/app/useStore'; // Verbatim compliance
-import QueryIntentPanel from '@/app/QueryIntentPanel';
 
 function ArrowUpIcon({ className }: { className?: string }) {
   return (
@@ -48,12 +47,13 @@ interface StatCardProps {
   previous: number;
   unit?: string;
   isReady: boolean;
+  invertColor?: boolean;
 }
 
-function StatCard({ label, value, sub, border, current, previous, unit = "", isReady }: StatCardProps) {
+function StatCard({ label, value, sub, border, current, previous, unit = "", isReady, invertColor = false }: StatCardProps) {
   const delta = current - previous;
-  const isUp = delta > 0;
-  const isDown = delta < 0;
+  const improved = invertColor ? delta < 0 : delta > 0;
+  const declined = invertColor ? delta > 0 : delta < 0;
 
   return (
     <div className={`bg-[#F8F5F1] rounded-2xl p-6 shadow-sm border-4 ${border} transform transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between min-h-35`}>
@@ -70,11 +70,11 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
         </p>
         {isReady && (
           <div className="flex items-center gap-1">
-            {isUp && <ArrowUpIcon className="w-5 h-5 text-green-500 stroke-3" />}
-            {isDown && <ArrowDownIcon className="w-5 h-5 text-red-500 stroke-3" />}
-            {!isUp && !isDown && <MinusIcon className="w-5 h-5 text-gray-300" />}
+            {improved && <ArrowUpIcon className="w-5 h-5 text-green-500 stroke-3" />}
+            {declined && <ArrowDownIcon className="w-5 h-5 text-red-500 stroke-3" />}
+            {!improved && !declined && <MinusIcon className="w-5 h-5 text-gray-300" />}
             
-            <span className={`text-lg font-black leading-none ${isUp ? "text-green-500" : isDown ? "text-red-500" : "text-gray-400"}`}>
+            <span className={`text-lg font-black leading-none ${improved ? "text-green-500" : declined ? "text-red-500" : "text-gray-400"}`}>
               {Math.abs(delta).toFixed(1)}{unit}
             </span>
           </div>
@@ -85,7 +85,7 @@ function StatCard({ label, value, sub, border, current, previous, unit = "", isR
 }
 
 export default function AEOView() {
-  const { fetchGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, aiInsights, isAiLoading, aiError, gscError, generateInsights, isGscLoading, currentGscRows, ownership_score } = useStore();
+  const { fetchGscData, selectionEfficiency, modelAuthority, retrievalVolume, knowledgeNodes, prevSelectionEfficiency, prevModelAuthority, prevRetrievalVolume, prevKnowledgeNodes, mergedData, selectedStartDate, selectedEndDate, aiInsights, isAiLoading, aiError, gscError, generateInsights, isGscLoading, currentGscRows, ownership_score, filteredRows } = useStore();
 
 
   useEffect(() => {
@@ -93,25 +93,34 @@ export default function AEOView() {
     fetchGscData();
   }, [selectedStartDate, selectedEndDate, fetchGscData]);
 
-  const isStoreReady = mergedData.length > 0;
+  const isStoreReady = mergedData.length > 0 || filteredRows.length > 0;
 
   // 🤖 AI STRATEGIST TRIGGER: One-time execution with debounce and status logging
-  const [aiFired, setAiFired] = useState(false);
+  const aiFired = useRef(false);
+
+  useEffect(() => {
+    // If the store's aiInsights becomes null (via Reset), 
+    // we allow the trigger to fire again for the new data.
+    if (!aiInsights) {
+      aiFired.current = false;
+    }
+  }, [aiInsights]);
 
   useEffect(() => {
     // Condition: Store must be populated, and we haven't triggered the one-time analysis yet
-    if (isStoreReady && !aiFired && !isAiLoading) {
-      console.log(`[AEO AI TRIGGER] Dashboard signal stabilized with ${mergedData.length} nodes. Starting 1500ms debounce...`);
+    if (isStoreReady && !aiFired.current && !isAiLoading && !aiInsights) {
+      aiFired.current = true; // Lock the trigger immediately to prevent double-firing in Strict Mode
+      
+      console.log(`[AEO AI TRIGGER] Dashboard signal stabilized. Starting 5000ms safety debounce...`);
       
       const timer = setTimeout(() => {
         console.log('[AEO AI TRIGGER] Debounce complete. Executing generateInsights().');
         generateInsights();
-        setAiFired(true);
-      }, 1500);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [isStoreReady, aiFired, isAiLoading, generateInsights, mergedData.length]);
+  }, [isStoreReady, isAiLoading, generateInsights, aiInsights]);
 
   const fmtSnippetReach = isStoreReady ? retrievalVolume.toLocaleString() : "—";
   const fmtMerchantPos = isStoreReady ? modelAuthority.toFixed(2) : "—";
@@ -124,7 +133,7 @@ export default function AEOView() {
   const missingPct = Math.round((mergedData.filter(n => n.status === 'Missing').length / totalNodes) * 100);
 
   return (
-    <div className="space-y-24 animate-fadeIn">
+    <div className="relative space-y-24 animate-fadeIn">
       {gscError && (
         <div className="p-6 border-4 border-red-500/20 bg-red-500/5 rounded-2xl flex items-center gap-4 animate-fadeIn">
           <ExclamationIcon className="w-10 h-10 text-red-500" />
@@ -158,6 +167,7 @@ export default function AEOView() {
             current={modelAuthority}
             previous={prevModelAuthority}
             isReady={isStoreReady}
+            invertColor={true}
           />
           <StatCard
             label="Retrieval Volume"
@@ -195,7 +205,7 @@ export default function AEOView() {
                   <span>{buoyantPct}%</span>
                 </div>
                 <div className="w-full bg-gray-800 h-2 rounded-full">
-                  <div className="bg-green-400 h-full transition-all duration-1000 progress-buoyant" style={{ '--buoyant-width': `${buoyantPct}%` } as React.CSSProperties}></div>
+                  <div className="bg-green-400 h-full transition-all duration-1000 ease-out" style={{ width: `${buoyantPct}%` }}></div>
                 </div>
               </div>
               <div>
@@ -204,7 +214,7 @@ export default function AEOView() {
                   <span>{establishingPct}%</span>
                 </div>
                 <div className="w-full bg-gray-800 h-2 rounded-full">
-                  <div className="bg-blue-400 h-full transition-all duration-1000 progress-establishing" style={{ '--establishing-width': `${establishingPct}%` } as React.CSSProperties}></div>
+                  <div className="bg-blue-400 h-full transition-all duration-1000 ease-out" style={{ width: `${establishingPct}%` }}></div>
                 </div>
               </div>
               <div>
@@ -213,7 +223,7 @@ export default function AEOView() {
                   <span>{missingPct}%</span>
                 </div>
                 <div className="w-full bg-gray-800 h-2 rounded-full">
-                  <div className="bg-red-400 h-full transition-all duration-1000 progress-missing" style={{ '--missing-width': `${missingPct}%` } as React.CSSProperties}></div>
+                  <div className="bg-red-400 h-full transition-all duration-1000 ease-out" style={{ width: `${missingPct}%` }}></div>
                 </div>
               </div>
             </div>
@@ -264,15 +274,18 @@ export default function AEOView() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-400 italic">Waiting for data signals...</p>
+              <div className="flex flex-col items-center py-4 text-center">
+                <p className="text-sm text-gray-400 italic mb-4">Signal stabilized. Strategy engine ready.</p>
+                <button
+                  onClick={() => { aiFired.current = true; generateInsights(); }}
+                  className="px-6 py-3 bg-[#FF6F61] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-orange-500/20 active:scale-95"
+                >
+                  Generate Strategy
+                </button>
+              </div>
             )}
           </div>
         </div>
-      </section>
-
-      {/* SECTION 2: INTENT FAN-OUT */}
-      <section>
-        <QueryIntentPanel />
       </section>
 
       {/* SECTION 3: VELOCITY TABLE */}

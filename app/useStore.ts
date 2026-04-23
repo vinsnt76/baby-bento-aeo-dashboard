@@ -2,7 +2,10 @@
 
 import { create } from 'zustand';
 import { VELOCITY_DEC_25 } from '@/app/velocity-dec-25'; // Import static data
+import { sanitizeMetrics } from '@/sanitizeMetrics';
 
+const today = new Date();
+const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
 
 // This type is based on velocity-dec-25.ts to ensure type safety.
 export interface VelocityRecord {
@@ -80,6 +83,7 @@ export interface DashboardState {
   isAiLoading: boolean;
   isGscLoading: boolean;
   rows: any[]; 
+  filteredRows: any[];
   currentGscRows: any[];
   previousGscRows: any[];
   aiError: string | null;
@@ -88,7 +92,9 @@ export interface DashboardState {
   retrieval_lift: number;
   semantic_density: number;
   status: string;
+  resetView: () => void;
   setReportPeriod: (startDate: string, endDate: string) => void;
+  setFilteredRows: (rows: any[]) => void;
   setSelectedNode: (node: string | null) => void;
   setAiInsights: (insights: AIInsights | null) => void;
   setAiLoading: (loading: boolean) => void;
@@ -118,8 +124,8 @@ export const useStore = create<DashboardState>((set, get) => ({
   prevKnowledgeNodes: 0,
   reportStart: '',
   reportEnd: '',
-  selectedStartDate: '',
-  selectedEndDate: '',
+  selectedStartDate: thirtyDaysAgo.toISOString().split('T')[0],
+  selectedEndDate: today.toISOString().split('T')[0],
   aiInsights: null,
   isAiLoading: false,
   isGscLoading: false,
@@ -128,11 +134,36 @@ export const useStore = create<DashboardState>((set, get) => ({
   aiError: null,
   gscError: null,
   rows: [],
+  filteredRows: [],
   ownership_score: 0,
   retrieval_lift: 0,
   semantic_density: 0,
   status: 'Initialising',
+  resetView: () => {
+    set({
+      // Restore default 30-day window
+      selectedStartDate: thirtyDaysAgo.toISOString().split('T')[0],
+      selectedEndDate: today.toISOString().split('T')[0],
+
+      // Wipe AI & AEO specific state
+      aiInsights: null,
+      aiError: null,
+      mergedData: [],
+      selectedNode: null,
+
+      // Wipe GSC data and segments
+      rows: [],
+      filteredRows: [],
+      currentGscRows: [],
+      previousGscRows: [],
+
+      // Global status and error reset
+      gscError: null,
+      status: 'Initialising'
+    });
+  },
   setReportPeriod: (startDate, endDate) => set({ selectedStartDate: startDate, selectedEndDate: endDate }),
+  setFilteredRows: (rows) => set({ filteredRows: rows }),
   setAiInsights: (insights) => set({ aiInsights: insights }),
   setAiLoading: (loading) => set({ isAiLoading: loading }),
   setAiError: (error) => set({ aiError: error }),
@@ -174,7 +205,8 @@ export const useStore = create<DashboardState>((set, get) => ({
         semanticDensity, 
         rankingMomentum,
         brandedClicks,
-        nonBrandedClicks
+        nonBrandedClicks,
+        selectionEfficiency
     } = get();
 
     if (mergedData.length === 0) return;
@@ -182,25 +214,24 @@ export const useStore = create<DashboardState>((set, get) => ({
     set({ isAiLoading: true, aiError: null });
 
     try {
-        const totalClicks = brandedClicks + nonBrandedClicks;
-        // Calculate effective ownership score (Global Avg or Selected Node)
+        const totalClicks = (brandedClicks || 0) + (nonBrandedClicks || 0);
+        const brandedShare = totalClicks > 0 ? (brandedClicks || 0) / totalClicks : 0;
+
         const effectiveOwnership = selectedNode 
             ? ownershipScore 
             : (mergedData.reduce((acc, n) => acc + (n.ownershipScore || 0), 0) / (mergedData.length || 1));
 
-        // Calculate retrieval lift for the selected node or global average
-        const rawLift = selectedNode
-            ? (mergedData.find(d => d.name === selectedNode)?.['AEO Lift'] || 0)
-            : (mergedData.reduce((acc, n) => acc + (n['AEO Lift'] || 0), 0) / (mergedData.length || 1));
-        const retrievalLift = Number(rawLift).toFixed(1);
-        
-        const payload = {
+        const payload = sanitizeMetrics({
+            selectionEfficiency,
+            ownershipScore: effectiveOwnership,
+            mergedData: mergedData.map(d => ({ 
+                node: d.name, 
+                retrievalLift: d['AEO Lift'] || 0 
+            })),
+            brandedShare,
             selectedNode: selectedNode || "Global Portfolio",
-            semantic_density: semanticDensity,
-            ranking_momentum: rankingMomentum,
-            ownership_score: effectiveOwnership,
-            retrieval_lift: `${retrievalLift}%`
-        };
+            semanticDensity // Pass semanticDensity to sanitizeMetrics
+        });
 
         const res = await fetch('/api/insights', {
             method: 'POST',
@@ -388,8 +419,6 @@ export const useStore = create<DashboardState>((set, get) => ({
       status: globalStatus,
       reportStart: currentData.startDate,
       reportEnd: currentData.endDate,
-      selectedStartDate: currentData.startDate,
-      selectedEndDate: currentData.endDate,
     });
   },
 }));
