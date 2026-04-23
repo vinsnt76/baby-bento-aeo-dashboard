@@ -1,5 +1,5 @@
 // /data/baselines/baseline-dec-25.ts
-import { AEOBaseline } from "./types";
+import type { AEOBaseline } from "./types";
 
 export const BASELINE_DEC_25: AEOBaseline = {
   snapshotMonth: "December 2025",
