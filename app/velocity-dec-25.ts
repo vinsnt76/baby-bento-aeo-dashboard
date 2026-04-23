@@ -1,4 +1,4 @@
-import { VelocityRecord } from './types';
+import type { VelocityRecord } from './types';
 
 export const VELOCITY_DEC_25: VelocityRecord[] = [
   {

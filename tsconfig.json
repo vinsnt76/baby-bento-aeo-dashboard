@@ -30,7 +30,7 @@
         "./*"
       ],
       "@/components/*": [
-        "app/components/*"
+        "./app/components/*"
       ]
     }
   },
